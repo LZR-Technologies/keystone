@@ -1,11 +1,12 @@
 // Creating the project: the deterministic part. Runs on its own, no AI, zero cost.
-// Step 1 (the skeleton) lays down the folder, a config file recording the answers,
-// and a base README. The pillars (database, checks, branches, etc.) are layered on
-// in later steps. See docs/plano-construcao.md and docs/fluxo-skill.md.
+// Step 2 lays down the base mould — the standard folder layout plus the foundation
+// files (translation hub + locale-aware formatting). Later steps add the other
+// pillars. See docs/plano-construcao.md and docs/fundacao.md.
 
 import { mkdir, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import type { KeystoneAnswers, ProjectType } from './types.ts';
+import { foundationFiles, type ScaffoldFile } from './scaffold/foundation.ts';
 
 export interface DeducedChoices {
   needsDatabase: boolean;
@@ -28,33 +29,48 @@ export function deduce(answers: KeystoneAnswers): DeducedChoices {
   };
 }
 
+/** The base files every project gets, regardless of type. */
+function baseFiles(answers: KeystoneAnswers, deduced: DeducedChoices): ScaffoldFile[] {
+  const { product, setup } = answers;
+
+  // Records answers + deductions so later steps (and re-runs) know how this
+  // project was set up, instead of guessing.
+  const config = { keystoneVersion: '0.1.0', product, setup, deduced };
+
+  // A minimal manifest for the generated project; the real stack is layered later.
+  const manifest = { name: product.name, version: '0.1.0', private: true, type: 'module' };
+
+  return [
+    { path: 'keystone.json', content: `${JSON.stringify(config, null, 2)}\n` },
+    { path: 'package.json', content: `${JSON.stringify(manifest, null, 2)}\n` },
+    { path: 'README.md', content: `# ${product.name}\n\nCreated with Keystone.\n` },
+    { path: '.gitignore', content: 'node_modules/\ndist/\n.env\n.env.local\n' },
+  ];
+}
+
+/** Write a list of scaffold files under the project dir, creating subfolders. */
+async function writeFiles(projectDir: string, files: ScaffoldFile[]): Promise<void> {
+  for (const file of files) {
+    const full = join(projectDir, file.path);
+    await mkdir(dirname(full), { recursive: true });
+    await writeFile(full, file.content);
+  }
+}
+
 export interface CreateResult {
   projectDir: string;
   deduced: DeducedChoices;
+  /** Paths written, relative to the project root — useful for the confirmation. */
+  files: string[];
 }
 
-/** Create the project folder and its base contents from the collected answers. */
+/** Create the project folder and its base mould from the collected answers. */
 export async function createProject(answers: KeystoneAnswers): Promise<CreateResult> {
   const deduced = deduce(answers);
   const projectDir = resolve(answers.setup.parentDir, answers.product.name);
 
-  // Keystone creates the project folder itself — the user only points at the parent.
-  await mkdir(join(projectDir, 'src'), { recursive: true });
+  const files = [...baseFiles(answers, deduced), ...foundationFiles(answers.product)];
+  await writeFiles(projectDir, files);
 
-  // Record answers + deductions so later steps (and re-runs) know how this
-  // project was set up, instead of guessing.
-  const config = {
-    keystoneVersion: '0.1.0',
-    product: answers.product,
-    setup: answers.setup,
-    deduced,
-  };
-  await writeFile(join(projectDir, 'keystone.json'), `${JSON.stringify(config, null, 2)}\n`);
-
-  await writeFile(
-    join(projectDir, 'README.md'),
-    `# ${answers.product.name}\n\nCreated with Keystone.\n`,
-  );
-
-  return { projectDir, deduced };
+  return { projectDir, deduced, files: files.map((f) => f.path) };
 }

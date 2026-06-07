@@ -21,8 +21,9 @@ async function runNew(presetName?: string): Promise<void> {
   try {
     console.log('\nKeystone — let’s set up your project.\n');
     const answers = await runWizard(prompter, presetName);
-    const { projectDir, deduced } = await createProject(answers);
+    const { projectDir, deduced, files } = await createProject(answers);
     console.log(`\n✓ Project created at ${projectDir}`);
+    console.log(`  ${files.length} files written (folder layout + foundation)`);
     console.log(`  Database: ${deduced.needsDatabase ? 'yes (deduced)' : 'not needed'}`);
     console.log(`  Security: ${deduced.securityLevel}`);
   } finally {

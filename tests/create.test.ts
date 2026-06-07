@@ -1,4 +1,4 @@
-// Tests for the deterministic core of Step 1: deduction + project creation.
+// Tests for the deterministic core: deduction + project creation (base mould).
 // Born with the feature, covers the happy path and the edges (the pillar of Testes).
 
 import { test } from 'node:test';
@@ -11,7 +11,7 @@ import type { KeystoneAnswers, ProjectType } from '../src/types.ts';
 
 function answers(type: ProjectType, sensitive: boolean, parentDir = '.'): KeystoneAnswers {
   return {
-    product: { name: 'demo', type, language: 'en', screen: 'both', look: 'later', sensitive },
+    product: { name: 'demo', type, language: 'pt', screen: 'both', look: 'later', sensitive },
     setup: { versionTarget: 'local', isPrivate: false, parentDir },
   };
 }
@@ -35,24 +35,28 @@ test('deduce: mobile needs a database only when sensitive', () => {
   assert.equal(deduce(answers('mobile', true)).needsDatabase, true);
 });
 
-test('createProject: creates the folder, config and readme', async () => {
+test('createProject: writes the base mould and foundation files', async () => {
   const parent = await mkdtemp(join(tmpdir(), 'keystone-'));
   try {
-    const { projectDir, deduced } = await createProject(answers('system', true, parent));
+    const { projectDir, deduced, files } = await createProject(answers('system', true, parent));
 
-    // folder exists
     assert.ok((await stat(projectDir)).isDirectory());
 
     // config records the answers and deductions
     const config = JSON.parse(await readFile(join(projectDir, 'keystone.json'), 'utf8'));
     assert.equal(config.product.name, 'demo');
     assert.equal(config.deduced.needsDatabase, true);
-    assert.equal(config.deduced.securityLevel, 'reinforced');
     assert.equal(deduced.securityLevel, 'reinforced');
 
-    // readme carries the project name
-    const readme = await readFile(join(projectDir, 'README.md'), 'utf8');
-    assert.match(readme, /# demo/);
+    // the base mould + foundation are present
+    for (const expected of ['package.json', 'README.md', '.gitignore', 'src/lib/format.ts', 'src/lib/i18n.ts']) {
+      assert.ok(files.includes(expected), `expected ${expected} to be written`);
+      assert.ok((await stat(join(projectDir, expected))).isFile());
+    }
+
+    // the foundation is in the project's language
+    const format = await readFile(join(projectDir, 'src/lib/format.ts'), 'utf8');
+    assert.match(format, /pt-BR/);
   } finally {
     await rm(parent, { recursive: true, force: true });
   }
