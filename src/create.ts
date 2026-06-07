@@ -7,6 +7,8 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import type { KeystoneAnswers, ProjectType } from './types.ts';
 import { foundationFiles, type ScaffoldFile } from './scaffold/foundation.ts';
+import { databaseFiles } from './scaffold/database.ts';
+import { workflowFiles } from './scaffold/workflow.ts';
 
 export interface DeducedChoices {
   needsDatabase: boolean;
@@ -69,7 +71,12 @@ export async function createProject(answers: KeystoneAnswers): Promise<CreateRes
   const deduced = deduce(answers);
   const projectDir = resolve(answers.setup.parentDir, answers.product.name);
 
-  const files = [...baseFiles(answers, deduced), ...foundationFiles(answers.product)];
+  const files = [
+    ...baseFiles(answers, deduced),
+    ...foundationFiles(answers.product),
+    ...databaseFiles(answers.product, deduced.needsDatabase),
+    ...workflowFiles(answers.product),
+  ];
   await writeFiles(projectDir, files);
 
   return { projectDir, deduced, files: files.map((f) => f.path) };
