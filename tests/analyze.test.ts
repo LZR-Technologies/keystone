@@ -23,9 +23,9 @@ test('runChecks: flags missing tests and missing README', () => {
 });
 
 test('runChecks: detects an exposed secret', () => {
-  const results = runChecks(
-    snapshot({ files: [{ path: 'a.ts', content: 'const k = "AKIAABCDEFGHIJKLMNOP";' }] }), // allow-secret
-  );
+  // sample assembled from parts so this file does not self-flag when scanned
+  const leaked = `const k = "${'AKIA' + 'ABCDEFGHIJKLMNOP'}";`;
+  const results = runChecks(snapshot({ files: [{ path: 'a.ts', content: leaked }] }));
   const sec = results.find((r) => r.title === 'No exposed secrets');
   assert.equal(sec?.passed, false);
   assert.equal(sec?.severity, 'high');
