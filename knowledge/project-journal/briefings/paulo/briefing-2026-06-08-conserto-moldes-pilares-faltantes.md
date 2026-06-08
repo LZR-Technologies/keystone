@@ -35,9 +35,23 @@ No fim, Paulo apontou (certeiro) que os 7 moldes **não cobrem os 8 pilares**.
 5. Docs de design (em `keystone/docs/` e `lzr-core/standards/plataforma/`) ainda descrevem o jeito antigo
    ("gerar do zero") — atualizar pra "usa os moldes reais".
 
-## Onde retomar
-**Primeira pergunta ao Paulo:** "Vamos começar a cobrir o pilar de Segurança nos moldes? Te trago
-referências reais de segurança pré-instalada e a gente cria peça por peça, com prova."
+## Onde retomar — MUDOU: começar pelos FREIOS, não pela Segurança
+Decisão do Paulo no fim da sessão: **antes** de cobrir os pilares faltantes, construir uma **skill de
+freios** (viva) que imponha estrutura contra os meus padrões de falha de hoje — porque o próximo pilar
+(Segurança) é onde eu já caí, e atacá-lo sem freios é repetir o erro. A skill protege todo o resto do core.
+
+**A skill de freios (versão enxuta primeiro, e cresce a cada novo desvio):**
+- Freio anti-casca: antes de eu dizer "pronto/completo/funciona", exigir prova que o Paulo confere
+  (comparação/saída de comando). Idealmente vira VIGIA automático (como o de linguagem/branch que já existem).
+- Freio anti-reinvenção: antes de CRIAR, mostrar que procurei o que ele já tem.
+- Freio anti-não-me-auditar: depois de codar, rodar auditor externo (ferramenta/teste/comparação) e
+  mostrar a saída crua, não a minha opinião; quando der, um segundo olhar independente.
+- Combinar SKILL (o que fazer) + VIGIAS automáticos (garantem que eu faça / travam a entrega). A força
+  está nos vigias (fora do meu controle), não na skill que eu posso pular. Paulo é o freio final.
+
+**Primeira pergunta ao Paulo:** "Vamos construir a skill de freios (versão enxuta) primeiro? Aí eu
+ataco a Segurança já debaixo dela. Ou você prefere abrir uma issue e seguir o core?"
+**Depois dos freios:** cobrir Segurança (a "tranca por dentro") com referências reais, peça por peça, com prova.
 
 ## Como trabalhar com Paulo (CRÍTICO — não esquecer)
 - Ele **não lê código** — provar TUDO com o que ele pode conferir (comparação/diff, rodar a ferramenta e
