@@ -1,0 +1,26 @@
+{
+  "name": "@lzr/eslint-config",
+  "version": "1.1.0",
+  "description": "Configuração ESLint compartilhada da LZR Technologies",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LZR-Tech/lzr-eslint-config.git"
+  },
+  "type": "module",
+  "main": "index.mjs",
+  "exports": {
+    ".": "./index.mjs"
+  },
+  "files": ["index.mjs"],
+  "peerDependencies": {
+    "eslint": ">=9.0.0",
+    "@eslint/js": ">=9.0.0",
+    "@typescript-eslint/eslint-plugin": ">=8.0.0",
+    "@typescript-eslint/parser": ">=8.0.0",
+    "eslint-plugin-import": ">=2.29.0",
+    "eslint-plugin-react": ">=7.37.0",
+    "globals": ">=15.0.0"
+  },
+  "keywords": ["eslint", "config", "lzr"]
+}

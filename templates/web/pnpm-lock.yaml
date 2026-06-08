@@ -52,17 +52,17 @@ importers:
         specifier: ^9.0.0
         version: 9.39.4
       '@lzr/commitlint-config':
-        specifier: github:LZR-Tech/lzr-commitlint-config#main
-        version: https://codeload.github.com/LZR-Tech/lzr-commitlint-config/tar.gz/3dd0d748257529a3e39c25e7a2008c4637865f29(@commitlint/cli@19.8.1(@types/node@22.19.17)(typescript@5.9.3))(@commitlint/config-conventional@19.8.1)
+        specifier: file:./config/commitlint-config
+        version: file:config/commitlint-config(@commitlint/cli@19.8.1(@types/node@22.19.17)(typescript@5.9.3))(@commitlint/config-conventional@19.8.1)
       '@lzr/eslint-config':
-        specifier: github:LZR-Tech/lzr-eslint-config#main
-        version: https://codeload.github.com/LZR-Tech/lzr-eslint-config/tar.gz/169cc4c271b32914c97fe6673b95c107129cdc1e(@eslint/js@9.39.4)(@typescript-eslint/eslint-plugin@8.59.2(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.4(jiti@1.21.7)))(eslint-plugin-react@7.37.5(eslint@9.39.4(jiti@1.21.7)))(eslint@9.39.4(jiti@1.21.7))(globals@14.0.0)
+        specifier: file:./config/eslint-config
+        version: file:config/eslint-config(@eslint/js@9.39.4)(@typescript-eslint/eslint-plugin@8.59.2(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.4(jiti@1.21.7)))(eslint-plugin-react@7.37.5(eslint@9.39.4(jiti@1.21.7)))(eslint@9.39.4(jiti@1.21.7))(globals@15.15.0)
       '@lzr/prettier-config':
-        specifier: github:LZR-Tech/lzr-prettier-config#main
-        version: https://codeload.github.com/LZR-Tech/lzr-prettier-config/tar.gz/c416dc78ad0f3d3326e5ade15f6c734e4eb2b640(prettier-plugin-tailwindcss@0.6.14(prettier@3.8.3))(prettier@3.8.3)
+        specifier: file:./config/prettier-config
+        version: file:config/prettier-config(prettier-plugin-tailwindcss@0.6.14(prettier@3.8.3))(prettier@3.8.3)
       '@lzr/tsconfig':
-        specifier: github:LZR-Tech/lzr-tsconfig#main
-        version: https://codeload.github.com/LZR-Tech/lzr-tsconfig/tar.gz/b83d33e7d2671293d057f602831b77e348a0922e
+        specifier: file:./config/tsconfig
+        version: file:config/tsconfig
       '@playwright/test':
         specifier: ^1.48.0
         version: 1.59.1
@@ -93,6 +93,9 @@ importers:
       eslint-plugin-import:
         specifier: ^2.29.0
         version: 2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.4(jiti@1.21.7))
+      globals:
+        specifier: ^15.0.0
+        version: 15.15.0
       husky:
         specifier: ^9.0.0
         version: 9.1.7
@@ -559,16 +562,14 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@lzr/commitlint-config@https://codeload.github.com/LZR-Tech/lzr-commitlint-config/tar.gz/3dd0d748257529a3e39c25e7a2008c4637865f29':
-    resolution: {tarball: https://codeload.github.com/LZR-Tech/lzr-commitlint-config/tar.gz/3dd0d748257529a3e39c25e7a2008c4637865f29}
-    version: 1.0.0
+  '@lzr/commitlint-config@file:config/commitlint-config':
+    resolution: {directory: config/commitlint-config, type: directory}
     peerDependencies:
       '@commitlint/cli': '>=18.0.0'
       '@commitlint/config-conventional': '>=18.0.0'
 
-  '@lzr/eslint-config@https://codeload.github.com/LZR-Tech/lzr-eslint-config/tar.gz/169cc4c271b32914c97fe6673b95c107129cdc1e':
-    resolution: {tarball: https://codeload.github.com/LZR-Tech/lzr-eslint-config/tar.gz/169cc4c271b32914c97fe6673b95c107129cdc1e}
-    version: 1.1.0
+  '@lzr/eslint-config@file:config/eslint-config':
+    resolution: {directory: config/eslint-config, type: directory}
     peerDependencies:
       '@eslint/js': '>=9.0.0'
       '@typescript-eslint/eslint-plugin': '>=8.0.0'
@@ -578,16 +579,14 @@ packages:
       eslint-plugin-react: '>=7.37.0'
       globals: '>=15.0.0'
 
-  '@lzr/prettier-config@https://codeload.github.com/LZR-Tech/lzr-prettier-config/tar.gz/c416dc78ad0f3d3326e5ade15f6c734e4eb2b640':
-    resolution: {tarball: https://codeload.github.com/LZR-Tech/lzr-prettier-config/tar.gz/c416dc78ad0f3d3326e5ade15f6c734e4eb2b640}
-    version: 1.0.0
+  '@lzr/prettier-config@file:config/prettier-config':
+    resolution: {directory: config/prettier-config, type: directory}
     peerDependencies:
       prettier: '>=3.0.0'
       prettier-plugin-tailwindcss: '>=0.5.0'
 
-  '@lzr/tsconfig@https://codeload.github.com/LZR-Tech/lzr-tsconfig/tar.gz/b83d33e7d2671293d057f602831b77e348a0922e':
-    resolution: {tarball: https://codeload.github.com/LZR-Tech/lzr-tsconfig/tar.gz/b83d33e7d2671293d057f602831b77e348a0922e}
-    version: 1.0.0
+  '@lzr/tsconfig@file:config/tsconfig':
+    resolution: {directory: config/tsconfig, type: directory}
 
   '@next/env@15.5.16':
     resolution: {integrity: sha512-9QMKolCl+JnJtaRAQSXy4RQrhgfe8W7/G1+Hl3QSB/HZY7zQMzTwPDdTRwwio8BS96ps1MHpHhbS8qxoNV3JIQ==}
@@ -1570,6 +1569,10 @@ packages:
 
   globals@14.0.0:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
+    engines: {node: '>=18'}
+
+  globals@15.15.0:
+    resolution: {integrity: sha512-7ACyT3wmyp3I61S4fG682L0VA2RGD9otkqGJIwNUMF1SWUombIIk+af1unuDYgMm082aHYwD+mzJvv9Iu8dsgg==}
     engines: {node: '>=18'}
 
   globalthis@1.0.4:
@@ -3123,12 +3126,12 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@lzr/commitlint-config@https://codeload.github.com/LZR-Tech/lzr-commitlint-config/tar.gz/3dd0d748257529a3e39c25e7a2008c4637865f29(@commitlint/cli@19.8.1(@types/node@22.19.17)(typescript@5.9.3))(@commitlint/config-conventional@19.8.1)':
+  '@lzr/commitlint-config@file:config/commitlint-config(@commitlint/cli@19.8.1(@types/node@22.19.17)(typescript@5.9.3))(@commitlint/config-conventional@19.8.1)':
     dependencies:
       '@commitlint/cli': 19.8.1(@types/node@22.19.17)(typescript@5.9.3)
       '@commitlint/config-conventional': 19.8.1
 
-  '@lzr/eslint-config@https://codeload.github.com/LZR-Tech/lzr-eslint-config/tar.gz/169cc4c271b32914c97fe6673b95c107129cdc1e(@eslint/js@9.39.4)(@typescript-eslint/eslint-plugin@8.59.2(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.4(jiti@1.21.7)))(eslint-plugin-react@7.37.5(eslint@9.39.4(jiti@1.21.7)))(eslint@9.39.4(jiti@1.21.7))(globals@14.0.0)':
+  '@lzr/eslint-config@file:config/eslint-config(@eslint/js@9.39.4)(@typescript-eslint/eslint-plugin@8.59.2(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.4(jiti@1.21.7)))(eslint-plugin-react@7.37.5(eslint@9.39.4(jiti@1.21.7)))(eslint@9.39.4(jiti@1.21.7))(globals@15.15.0)':
     dependencies:
       '@eslint/js': 9.39.4
       '@typescript-eslint/eslint-plugin': 8.59.2(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3)
@@ -3136,14 +3139,14 @@ snapshots:
       eslint: 9.39.4(jiti@1.21.7)
       eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.4(jiti@1.21.7))
       eslint-plugin-react: 7.37.5(eslint@9.39.4(jiti@1.21.7))
-      globals: 14.0.0
+      globals: 15.15.0
 
-  '@lzr/prettier-config@https://codeload.github.com/LZR-Tech/lzr-prettier-config/tar.gz/c416dc78ad0f3d3326e5ade15f6c734e4eb2b640(prettier-plugin-tailwindcss@0.6.14(prettier@3.8.3))(prettier@3.8.3)':
+  '@lzr/prettier-config@file:config/prettier-config(prettier-plugin-tailwindcss@0.6.14(prettier@3.8.3))(prettier@3.8.3)':
     dependencies:
       prettier: 3.8.3
       prettier-plugin-tailwindcss: 0.6.14(prettier@3.8.3)
 
-  '@lzr/tsconfig@https://codeload.github.com/LZR-Tech/lzr-tsconfig/tar.gz/b83d33e7d2671293d057f602831b77e348a0922e': {}
+  '@lzr/tsconfig@file:config/tsconfig': {}
 
   '@next/env@15.5.16': {}
 
@@ -4242,6 +4245,8 @@ snapshots:
       ini: 4.1.1
 
   globals@14.0.0: {}
+
+  globals@15.15.0: {}
 
   globalthis@1.0.4:
     dependencies:

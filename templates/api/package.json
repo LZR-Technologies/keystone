@@ -25,10 +25,10 @@
     "pino-pretty": "^11.0.0"
   },
   "devDependencies": {
-    "@lzr/eslint-config": "github:LZR-Tech/lzr-eslint-config#main",
-    "@lzr/tsconfig": "github:LZR-Tech/lzr-tsconfig#main",
-    "@lzr/prettier-config": "github:LZR-Tech/lzr-prettier-config#main",
-    "@lzr/commitlint-config": "github:LZR-Tech/lzr-commitlint-config#main",
+    "@lzr/eslint-config": "file:./config/eslint-config",
+    "@lzr/tsconfig": "file:./config/tsconfig",
+    "@lzr/prettier-config": "file:./config/prettier-config",
+    "@lzr/commitlint-config": "file:./config/commitlint-config",
     "@commitlint/cli": "^19.0.0",
     "@commitlint/config-conventional": "^19.0.0",
     "@eslint/js": "^9.0.0",
@@ -36,6 +36,7 @@
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.0.0",
     "eslint-plugin-import": "^2.29.0",
+    "globals": "^15.0.0",
     "husky": "^9.0.0",
     "lint-staged": "^16.0.0",
     "prettier": "^3.3.0",

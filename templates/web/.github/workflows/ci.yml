@@ -7,7 +7,7 @@ on:
 
 jobs:
   ci:
-    uses: LZR-Tech/lzr-github-ops/.github/workflows/ci.yml@main
+    uses: ./.github/workflows/_ci-reusable.yml
     with:
       node-version: '20'
       package-manager: 'pnpm'

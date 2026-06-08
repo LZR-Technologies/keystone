@@ -1,0 +1,17 @@
+{
+  "name": "@lzr/prettier-config",
+  "version": "1.0.0",
+  "description": "Configuração Prettier compartilhada da LZR Technologies",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LZR-Tech/lzr-prettier-config.git"
+  },
+  "main": "index.json",
+  "files": ["index.json"],
+  "peerDependencies": {
+    "prettier": ">=3.0.0",
+    "prettier-plugin-tailwindcss": ">=0.5.0"
+  },
+  "keywords": ["prettier", "config", "lzr"]
+}

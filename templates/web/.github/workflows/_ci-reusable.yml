@@ -1,0 +1,109 @@
+# CI Pipeline — LZR Technologies
+# Workflow reutilizável para projetos TypeScript
+# Ref: https://code.lzrtechnologies.com
+#
+# Uso em outro repo:
+#   jobs:
+#     ci:
+#       uses: LZR-Tech/lzr-github-ops/.github/workflows/ci.yml@main
+
+name: CI
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version'
+        required: false
+        type: string
+        default: '20'
+      package-manager:
+        description: 'Package manager (npm, pnpm, yarn)'
+        required: false
+        type: string
+        default: 'npm'
+      run-e2e:
+        description: 'Run E2E tests'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  quality:
+    name: Quality Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # pnpm precisa estar disponível ANTES do setup-node, porque o cache do
+      # setup-node valida o lockfile (pnpm-lock.yaml) e roda `pnpm` se for o
+      # gerenciador escolhido. A action oficial do pnpm é a forma idiomática.
+      - name: Setup pnpm
+        if: inputs.package-manager == 'pnpm'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: ${{ inputs.package-manager }}
+
+      - name: Install dependencies
+        run: ${{ inputs.package-manager }} install
+
+      - name: TypeScript type-check
+        run: ${{ inputs.package-manager }} run typecheck
+
+      - name: Lint
+        run: ${{ inputs.package-manager }} run lint
+
+      - name: Unit tests
+        run: ${{ inputs.package-manager }} run test -- --coverage --reporter=verbose
+
+      - name: Build
+        run: ${{ inputs.package-manager }} run build
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  e2e:
+    name: E2E Tests
+    if: ${{ inputs.run-e2e }}
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: inputs.package-manager == 'pnpm'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: ${{ inputs.package-manager }}
+
+      - name: Install dependencies
+        run: ${{ inputs.package-manager }} install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run E2E tests
+        run: ${{ inputs.package-manager }} run test:e2e
+
+      - name: Upload E2E report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

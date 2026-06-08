@@ -1,0 +1,17 @@
+{
+  "name": "@lzr/tsconfig",
+  "version": "1.0.0",
+  "description": "Configurações TypeScript compartilhadas da LZR Technologies",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LZR-Tech/lzr-tsconfig.git"
+  },
+  "files": [
+    "tsconfig.base.json",
+    "tsconfig.node.json",
+    "tsconfig.next.json",
+    "tsconfig.react-native.json"
+  ],
+  "keywords": ["tsconfig", "typescript", "lzr"]
+}
