@@ -1,0 +1,58 @@
+# Release — LZR Technologies
+# Cria release automatizada com changelog
+#
+# Uso:
+#   jobs:
+#     release:
+#       uses: LZR-Tech/lzr-github-ops/.github/workflows/release.yml@main
+
+name: Release
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        required: false
+        type: string
+        default: '20'
+      package-manager:
+        required: false
+        type: string
+        default: 'npm'
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: ${{ inputs.package-manager }}
+
+      - name: Install dependencies
+        run: ${{ inputs.package-manager }} install
+
+      - name: Build
+        run: ${{ inputs.package-manager }} run build
+
+      - name: Generate changelog
+        id: changelog
+        uses: conventional-changelog/standard-version@latest
+        with:
+          skip-commit: true
+          skip-tag: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true

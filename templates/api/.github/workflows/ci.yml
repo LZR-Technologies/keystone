@@ -1,0 +1,13 @@
+name: CI
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  ci:
+    uses: LZR-Tech/lzr-github-ops/.github/workflows/ci.yml@main
+    with:
+      node-version: '20'
+      package-manager: 'npm'

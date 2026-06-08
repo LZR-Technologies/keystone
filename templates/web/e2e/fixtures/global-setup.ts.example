@@ -1,0 +1,76 @@
+import { chromium, type FullConfig } from '@playwright/test'
+import { mkdirSync } from 'node:fs'
+import path from 'node:path'
+
+/**
+ * Global setup — faz login uma vez antes de toda a suite e salva storage state.
+ *
+ * Por que: login via UI em cada teste é caro (2-5s × N tests) e flaky (toda
+ * vez que o login UI muda, suite quebra). Storage state reuso resolve ambos.
+ *
+ * Specs em critical/ usam essa sessão via use.storageState no playwright.config.
+ * Specs em smoke/ ignoram (cookies vazios).
+ *
+ * Credenciais vêm de env vars (E2E_USER_EMAIL / E2E_USER_PASSWORD).
+ * Em CI, configurar em GitHub Secrets. Local, em .env.local.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * COMO ADAPTAR PRO SEU PROJETO:
+ *
+ * 1. Renomeie este arquivo: global-setup.ts.example → global-setup.ts
+ * 2. Ajuste os seletores entre os marcadores [TODO] abaixo pra bater com
+ *    a UI de login do seu app (path da rota, seletor dos inputs, botão).
+ * 3. Ajuste o waitForURL pro padrão pós-login do seu app (/dashboard, /home, etc.)
+ *
+ * Exemplos de patterns comuns:
+ *
+ *   // Login em rota dedicada /login:
+ *   await page.goto(`${baseURL}/login`)
+ *   await page.getByLabel(/e-?mail/i).fill(email)
+ *
+ *   // Login em modal acessado via CTA na landing (padrão Green Copilot):
+ *   await page.goto(`${baseURL}/`)
+ *   await page.getByRole('button', { name: /acessar|entrar|sign in/i }).click()
+ *
+ *   // Inputs com label semântico (htmlFor):
+ *   await page.getByLabel(/e-?mail/i).fill(email)
+ *
+ *   // Inputs sem htmlFor — use placeholder:
+ *   await page.getByPlaceholder('seu@email.com').fill(email)
+ * ─────────────────────────────────────────────────────────────────────────
+ */
+export default async function globalSetup(_config: FullConfig) {
+  const email = process.env.E2E_USER_EMAIL
+  const password = process.env.E2E_USER_PASSWORD
+  const baseURL = process.env.E2E_BASE_URL || 'http://localhost:3000'
+
+  // Sem credenciais: smoke tests ainda funcionam (não dependem de auth).
+  // Critical tests vão falhar com mensagem clara de env var faltando.
+  if (!email || !password) {
+    console.warn(
+      '[e2e] E2E_USER_EMAIL / E2E_USER_PASSWORD não configurados. ' +
+        'Specs em critical/ vão pular ou falhar. Configure em .env.local ou GitHub Secrets.',
+    )
+    return
+  }
+
+  const storageDir = path.join(__dirname, '..', '.auth')
+  mkdirSync(storageDir, { recursive: true })
+  const storagePath = path.join(storageDir, 'storage-state.json')
+
+  const browser = await chromium.launch()
+  const context = await browser.newContext()
+  const page = await context.newPage()
+
+  // [TODO] Ajuste o fluxo de login pro seu projeto
+  await page.goto(`${baseURL}/login`)
+  await page.getByLabel(/e-?mail/i).fill(email)
+  await page.getByLabel(/senha|password/i).fill(password)
+  await page.getByRole('button', { name: /entrar|login|sign in/i }).click()
+
+  // [TODO] Ajuste o padrão de URL pós-login do seu app
+  await page.waitForURL(/\/(dashboard|home|app)/, { timeout: 30_000 })
+
+  await context.storageState({ path: storagePath })
+  await browser.close()
+}

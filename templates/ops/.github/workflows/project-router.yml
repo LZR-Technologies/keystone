@@ -1,0 +1,246 @@
+# Project Router — LZR Technologies
+# Workflow reutilizável que roteia issues e PRs para um GitHub Project v2.
+# Cria colunas dinamicamente por coder e move itens conforme o ciclo de vida.
+#
+# Uso em outro repo:
+#   jobs:
+#     route:
+#       uses: LZR-Tech/lzr-github-ops/.github/workflows/project-router.yml@main
+#       secrets:
+#         LZR_PROJECT_TOKEN: ${{ secrets.LZR_PROJECT_TOKEN }}
+#       with:
+#         project-owner: LZR-Tech
+#         project-number: 1
+#
+# Pré-requisito (configurado pela skill /new-project):
+#   - Secret LZR_PROJECT_TOKEN no repo, com escopos `project` + `repo`.
+#   - Por padrão a skill copia o PAT do dev pro repo automaticamente.
+#
+# Comportamento:
+#   - issues.opened/reopened: cria coluna do criador (ou assignee) se não existir; move pra lá.
+#   - issues.assigned/unassigned: re-roteia só se ainda está em backlog (não bagunça fluxo).
+#   - issues.closed: move pra "Feito".
+#   - pull_request.opened/reopened: move PR pra "Em andamento".
+#   - pull_request.ready_for_review: move PR pra "Para revisão".
+#   - pull_request.closed (merged=true): move pra "Feito".
+#   - pull_request.closed (merged=false): volta pra coluna do autor.
+
+name: Project Router
+
+on:
+  workflow_call:
+    inputs:
+      project-owner:
+        description: 'Owner do GitHub Project (user ou org)'
+        required: true
+        type: string
+      project-number:
+        description: 'Número do GitHub Project v2'
+        required: true
+        type: number
+    secrets:
+      LZR_PROJECT_TOKEN:
+        description: 'PAT com escopo project + repo. Necessário porque GITHUB_TOKEN não acessa Projects v2.'
+        required: true
+
+jobs:
+  route:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Route item to project column
+        uses: actions/github-script@v7
+        env:
+          PROJECT_OWNER: ${{ inputs.project-owner }}
+          PROJECT_NUMBER: ${{ inputs.project-number }}
+        with:
+          github-token: ${{ secrets.LZR_PROJECT_TOKEN }}
+          script: |
+            const PROJECT_OWNER = process.env.PROJECT_OWNER
+            const PROJECT_NUMBER = parseInt(process.env.PROJECT_NUMBER, 10)
+            const FLOW_COLUMNS = ['Em andamento', 'Para revisão', 'Feito']
+
+            const event = context.eventName
+            const action = context.payload.action
+            const isIssue = event === 'issues'
+            const item = isIssue ? context.payload.issue : context.payload.pull_request
+            const author = item.user.login
+            const assignee = item.assignee ? item.assignee.login : null
+            const merged = !isIssue && context.payload.pull_request.merged
+
+            // 1. Determinar coluna alvo
+            let targetColumn = null
+            const key = `${event}-${action}`
+            switch (key) {
+              case 'issues-opened':
+              case 'issues-reopened':
+              case 'issues-assigned':
+              case 'issues-unassigned':
+                targetColumn = assignee || author
+                break
+              case 'issues-closed':
+                targetColumn = 'Feito'
+                break
+              case 'pull_request-opened':
+              case 'pull_request-reopened':
+                targetColumn = 'Em andamento'
+                break
+              case 'pull_request-ready_for_review':
+                targetColumn = 'Para revisão'
+                break
+              case 'pull_request-closed':
+                targetColumn = merged ? 'Feito' : author
+                break
+              default:
+                core.info(`Evento ${key} ignorado.`)
+                return
+            }
+            core.info(`Target column: ${targetColumn}`)
+
+            // 2. Buscar Project (tenta user, depois org)
+            const fetchProject = async (ownerType) => {
+              const queryUser = `
+                query($owner: String!, $number: Int!) {
+                  user(login: $owner) {
+                    projectV2(number: $number) {
+                      id
+                      fields(first: 50) {
+                        nodes {
+                          ... on ProjectV2SingleSelectField {
+                            id name
+                            options { id name }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }`
+              const queryOrg = queryUser.replace('user(login:', 'organization(login:')
+              const query = ownerType === 'user' ? queryUser : queryOrg
+              const result = await github.graphql(query, { owner: PROJECT_OWNER, number: PROJECT_NUMBER })
+              return result[ownerType]?.projectV2 ?? null
+            }
+
+            let ownerType = 'user'
+            let project = null
+            try {
+              project = await fetchProject('user')
+            } catch (_) {}
+            if (!project) {
+              ownerType = 'organization'
+              try {
+                project = await fetchProject('organization')
+              } catch (_) {}
+            }
+            if (!project) {
+              core.setFailed(`Project ${PROJECT_OWNER}/${PROJECT_NUMBER} não encontrado.`)
+              return
+            }
+
+            const statusField = project.fields.nodes.find((f) => f && f.name === 'Status')
+            if (!statusField) {
+              core.setFailed('Campo "Status" não encontrado no Project. Crie via skill /new-project.')
+              return
+            }
+
+            // 3. Resolver display name (se for login de usuário, busca nome real)
+            let columnDisplayName = targetColumn
+            if (!FLOW_COLUMNS.includes(targetColumn)) {
+              try {
+                const { data: user } = await github.rest.users.getByUsername({ username: targetColumn })
+                if (user.name) columnDisplayName = user.name
+              } catch (_) {
+                // Mantém login se não conseguir resolver (bots, conta deletada, etc.)
+              }
+            }
+
+            // 4. Garantir que a coluna existe (cria se necessário, com cores semânticas)
+            const COLOR = { 'Em andamento': 'YELLOW', 'Para revisão': 'PURPLE', Feito: 'GREEN' }
+            let option = statusField.options.find((o) => o.name === columnDisplayName)
+            if (!option) {
+              core.info(`Coluna '${columnDisplayName}' não existe — criando...`)
+              const personals = statusField.options.filter((o) => !FLOW_COLUMNS.includes(o.name))
+              const newOptions = [
+                ...personals.map((o) => ({ name: o.name, color: 'GRAY', description: '' })),
+                { name: columnDisplayName, color: 'GRAY', description: '' },
+                { name: 'Em andamento', color: COLOR['Em andamento'], description: '' },
+                { name: 'Para revisão', color: COLOR['Para revisão'], description: '' },
+                { name: 'Feito', color: COLOR.Feito, description: '' },
+              ]
+              const result = await github.graphql(
+                `mutation($fieldId: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
+                  updateProjectV2Field(input: { fieldId: $fieldId, singleSelectOptions: $options }) {
+                    projectV2Field {
+                      ... on ProjectV2SingleSelectField {
+                        options { id name }
+                      }
+                    }
+                  }
+                }`,
+                { fieldId: statusField.id, options: newOptions },
+              )
+              option = result.updateProjectV2Field.projectV2Field.options.find((o) => o.name === columnDisplayName)
+              if (!option) {
+                core.setFailed(`Falha ao criar coluna '${columnDisplayName}'.`)
+                return
+              }
+            }
+
+            // 5. Adicionar item ao Project (idempotente — retorna existente se já está)
+            const addResult = await github.graphql(
+              `mutation($projectId: ID!, $contentId: ID!) {
+                addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+                  item { id }
+                }
+              }`,
+              { projectId: project.id, contentId: item.node_id },
+            )
+            const itemId = addResult.addProjectV2ItemById.item.id
+
+            // 6. Anti-bagunça: se issue está em fluxo (Em andamento/Para revisão/Feito) e o evento
+            //    é só reassign, não volta pra coluna pessoal.
+            if (key === 'issues-assigned' || key === 'issues-unassigned') {
+              const currentResult = await github.graphql(
+                `query($projectId: ID!) {
+                  node(id: $projectId) {
+                    ... on ProjectV2 {
+                      items(first: 200) {
+                        nodes {
+                          id
+                          fieldValues(first: 20) {
+                            nodes {
+                              ... on ProjectV2ItemFieldSingleSelectValue {
+                                field { ... on ProjectV2SingleSelectField { name } }
+                                name
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }`,
+                { projectId: project.id },
+              )
+              const currentItem = currentResult.node.items.nodes.find((n) => n.id === itemId)
+              const currentStatus = currentItem?.fieldValues.nodes.find((v) => v.field?.name === 'Status')?.name
+              if (FLOW_COLUMNS.includes(currentStatus)) {
+                core.info(`Item já está em fluxo ('${currentStatus}'); reassign não move.`)
+                return
+              }
+            }
+
+            // 7. Aplicar Status
+            await github.graphql(
+              `mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                updateProjectV2ItemFieldValue(input: {
+                  projectId: $projectId
+                  itemId: $itemId
+                  fieldId: $fieldId
+                  value: { singleSelectOptionId: $optionId }
+                }) {
+                  projectV2Item { id }
+                }
+              }`,
+              { projectId: project.id, itemId, fieldId: statusField.id, optionId: option.id },
+            )
+            core.info(`Item movido para '${columnDisplayName}'.`)

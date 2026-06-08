@@ -1,0 +1,59 @@
+name: Bug Report
+description: Reporte um bug encontrado
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição do bug
+      description: O que aconteceu?
+      placeholder: Descreva o bug de forma clara
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para reproduzir
+      description: Como reproduzir o bug?
+      placeholder: |
+        1. Vá em '...'
+        2. Clique em '...'
+        3. Veja o erro
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado
+      description: O que deveria ter acontecido?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportamento atual
+      description: O que aconteceu de fato?
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Se aplicável, adicione prints
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severidade
+      options:
+        - SEV-4 (Minor — próximo dia útil)
+        - SEV-3 (Non-critical — <4 horas)
+        - SEV-2 (Critical — <30 min)
+        - SEV-1 (Outage — imediato)
+    validations:
+      required: true

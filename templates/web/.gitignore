@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+playwright-report/
+test-results/
+e2e/.auth/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

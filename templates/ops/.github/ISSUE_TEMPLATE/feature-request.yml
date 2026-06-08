@@ -1,0 +1,38 @@
+name: Feature Request
+description: Sugira uma nova funcionalidade
+title: "[FEATURE] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema
+      description: Qual problema esta feature resolve?
+      placeholder: "Hoje eu preciso fazer X manualmente e é lento..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solução proposta
+      description: Como você imagina a solução?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceite
+      description: Como saber que está pronto?
+      placeholder: |
+        - [ ] Critério 1
+        - [ ] Critério 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      description: Outras soluções que pensou?

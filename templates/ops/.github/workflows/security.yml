@@ -1,0 +1,67 @@
+# Security Scan — LZR Technologies
+# Verifica vulnerabilidades em dependências e código
+# Ref: https://code.lzrtechnologies.com (OWASP Top 10)
+#
+# Uso:
+#   jobs:
+#     security:
+#       uses: LZR-Tech/lzr-github-ops/.github/workflows/security.yml@main
+
+name: Security
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        required: false
+        type: string
+        default: '20'
+      package-manager:
+        required: false
+        type: string
+        default: 'npm'
+
+jobs:
+  audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: ${{ inputs.package-manager }}
+
+      - name: Install dependencies
+        run: ${{ inputs.package-manager }} install
+
+      - name: Audit dependencies
+        run: ${{ inputs.package-manager }} audit --audit-level=high
+        continue-on-error: true
+
+      - name: Check for known vulnerabilities
+        uses: actions/dependency-review-action@v4
+        if: github.event_name == 'pull_request'
+
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3

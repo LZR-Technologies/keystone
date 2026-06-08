@@ -1,0 +1,13 @@
+{
+  "extends": "@lzr/tsconfig/tsconfig.node.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "verbatimModuleSyntax": false
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

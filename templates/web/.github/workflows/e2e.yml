@@ -1,0 +1,80 @@
+name: E2E Tests
+
+# Fundação Playwright (padrão LZR). Roda em PRs que mexem em código ou config.
+# Bloqueia merge em falha. Configurar como required check no branch protection.
+
+on:
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'src/**'
+      - 'e2e/**'
+      - 'playwright.config.ts'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/e2e.yml'
+  workflow_dispatch:
+
+# Cancela runs anteriores do mesmo PR pra economizar minutos
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright (chromium)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Versão é detectada do campo "packageManager" do package.json — único source of truth.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Cache de browsers do Playwright — economiza ~2min por run
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package.json') }}
+
+      - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright system deps (se browser veio do cache)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      # Build prod do app — Playwright sobe via `pnpm start` (mais rápido + realista que dev).
+      # Substitua/adicione env vars conforme o setup do seu projeto (Supabase, APIs, etc).
+      - name: Build app
+        run: pnpm build
+
+      - name: Run Playwright tests
+        run: pnpm test:e2e
+        env:
+          CI: 'true'
+          # Adapte: credenciais do user de teste pra fluxo autenticado (specs em critical/).
+          # Se o seu projeto não tem auth ainda, apague essas envs — só smoke roda.
+          E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
+          E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+
+      # HTML report como artifact pra debug post-mortem em falha
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 14

@@ -1,0 +1,39 @@
+import { test, expect } from '@playwright/test'
+
+/**
+ * Login crítico — valida que a sessão criada pelo globalSetup funciona.
+ *
+ * Se este falhar, todas as outras specs críticas vão falhar também
+ * (porque o storage state está inválido). Sirve como guard pra
+ * detectar problema cedo no relatório de CI.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * COMO ADAPTAR:
+ *
+ * 1. Renomeie: login.spec.ts.example → login.spec.ts
+ * 2. Ajuste rotas autenticadas pro seu app (/dashboard, /app, /home...)
+ * 3. Garante que e2e/fixtures/global-setup.ts existe e está adaptado
+ *    (ver e2e/fixtures/global-setup.ts.example)
+ * ─────────────────────────────────────────────────────────────────────────
+ */
+
+test.describe('Login e sessão autenticada', () => {
+  test('user autenticado acessa rota protegida sem bounce', async ({ page }) => {
+    // [TODO] Troque '/dashboard' pela rota protegida principal do seu app.
+    await page.goto('/dashboard')
+
+    // Asserir URL final pra detectar bounce. Use toHaveURL com regex que match
+    // a rota protegida — se o middleware redirecionar pra landing, falha.
+    await expect(page).toHaveURL(/\/dashboard/)
+    await expect(page.locator('body')).not.toBeEmpty()
+  })
+
+  test('navegação entre rotas autenticadas preserva sessão', async ({ page }) => {
+    // [TODO] Liste 2-3 rotas protegidas do seu app pra cobrir navegação.
+    await page.goto('/dashboard')
+    await expect(page).toHaveURL(/\/dashboard/)
+    // Adicione mais rotas conforme implementar:
+    // await page.goto('/profile')
+    // await expect(page).toHaveURL(/\/profile/)
+  })
+})

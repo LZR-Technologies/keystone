@@ -1,0 +1,28 @@
+# Project Router para o próprio lzr-github-ops.
+# Cola que escuta eventos de issues/PRs e delega ao workflow reutilizável
+# (definido neste mesmo repo, em .github/workflows/project-router.yml).
+#
+# Configuração:
+#   - Project oficial: https://github.com/users/LZR-Tech/projects/4 (LZR Platform Roadmap)
+#   - Secret necessário: LZR_PROJECT_TOKEN (PAT com escopo project + repo)
+#
+# Por que o nome de arquivo é project-router.repo.yml e não project-router.yml:
+#   o workflow reutilizável já se chama project-router.yml; manter nome distinto
+#   evita confusão na UI do GitHub.
+
+name: Project Router (this repo)
+
+on:
+  issues:
+    types: [opened, reopened, assigned, unassigned, closed]
+  pull_request:
+    types: [opened, reopened, ready_for_review, closed]
+
+jobs:
+  route:
+    uses: ./.github/workflows/project-router.yml
+    secrets:
+      LZR_PROJECT_TOKEN: ${{ secrets.LZR_PROJECT_TOKEN }}
+    with:
+      project-owner: LZR-Tech
+      project-number: 4

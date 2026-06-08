@@ -1,0 +1,20 @@
+# LZR Technologies — CODEOWNERS
+# Ref: https://code.lzrtechnologies.com
+#
+# Copie este arquivo para .github/CODEOWNERS do seu repo
+# e ajuste os times/owners conforme o projeto.
+
+# Default: todo PR precisa de review do time de engenharia
+* @LZR-Tech
+
+# DevOps e CI/CD
+.github/ @LZR-Tech
+
+# Migrations e banco de dados
+supabase/migrations/ @LZR-Tech
+
+# Componentes de UI / Design System
+components/ui/ @LZR-Tech
+
+# Segurança e autenticação
+**/auth* @LZR-Tech

@@ -1,0 +1,25 @@
+# Project Router — encaminha issues e PRs para o GitHub Project v2 do produto.
+# A lógica fica centralizada no workflow reutilizável de lzr-github-ops, este
+# arquivo é só a "cola" que escuta os eventos do repo e delega.
+#
+# Configuração no repo (a skill /new-project automatiza tudo isso):
+#   - Project v2 criado em LZR-Tech (ou na org), com campo Status
+#   - Secret LZR_PROJECT_TOKEN (PAT com escopo project + repo)
+#   - project-number abaixo: número do Project v2 deste produto
+
+name: Project Router
+
+on:
+  issues:
+    types: [opened, reopened, assigned, unassigned, closed]
+  pull_request:
+    types: [opened, reopened, ready_for_review, closed]
+
+jobs:
+  route:
+    uses: LZR-Tech/lzr-github-ops/.github/workflows/project-router.yml@main
+    secrets:
+      LZR_PROJECT_TOKEN: ${{ secrets.LZR_PROJECT_TOKEN }}
+    with:
+      project-owner: __PROJECT_OWNER__
+      project-number: __PROJECT_NUMBER__

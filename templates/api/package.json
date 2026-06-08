@@ -1,0 +1,54 @@
+{
+  "name": "lzr-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "API LZR Technologies — TypeScript/Node",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage --passWithNoTests",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "fastify": "^5.0.0",
+    "zod": "^3.23.0",
+    "pino": "^9.0.0",
+    "pino-pretty": "^11.0.0"
+  },
+  "devDependencies": {
+    "@lzr/eslint-config": "github:LZR-Tech/lzr-eslint-config#main",
+    "@lzr/tsconfig": "github:LZR-Tech/lzr-tsconfig#main",
+    "@lzr/prettier-config": "github:LZR-Tech/lzr-prettier-config#main",
+    "@lzr/commitlint-config": "github:LZR-Tech/lzr-commitlint-config#main",
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "@eslint/js": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-import": "^2.29.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^16.0.0",
+    "prettier": "^3.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "prettier": "@lzr/prettier-config",
+  "lint-staged": {
+    "*.{ts,js,mjs,cjs}": ["eslint --fix", "prettier --write"],
+    "*.{json,md,yml,yaml}": ["prettier --write"]
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

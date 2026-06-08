@@ -1,0 +1,194 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * LZR Design System v1.3 — Template default tokens (placeholder neutro).
+ *
+ * Estes tokens são placeholders para o template começar a renderizar.
+ * Cada projeto LZR DEVE substituir as cores em :root e [data-theme='dark']
+ * pelos tokens definidos em https://design.lzrtechnologies.com/<projeto>.
+ *
+ * Handbook: "Zero hardcoded values — use Design System tokens"
+ */
+
+/* ===== LIGHT MODE ===== */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* Surfaces — placeholder slate */
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --elevated: #f5f5f5;
+  --border: #e5e5e5;
+  --border-hi: #d4d4d4;
+
+  /* Text — placeholder slate */
+  --text-1: #171717;
+  --text-2: #525252;
+  --text-3: #a3a3a3;
+  --text-inv: #ffffff;
+
+  /* Primary Accent — placeholder, substituir por cor do projeto */
+  --accent: #475569;
+  --accent-hi: #334155;
+  --accent-lo: #64748b;
+  --accent-bg: rgba(71, 85, 105, 0.08);
+  --accent-bd: rgba(71, 85, 105, 0.2);
+  --accent-glow: rgba(71, 85, 105, 0.2);
+
+  /* Secondary Accent — placeholder, substituir por cor do projeto */
+  --accent2: #94a3b8;
+  --accent2-hi: #64748b;
+  --accent2-lo: #cbd5e1;
+  --accent2-bg: rgba(148, 163, 184, 0.06);
+  --accent2-bd: rgba(148, 163, 184, 0.18);
+  --accent2-glow: rgba(148, 163, 184, 0.15);
+
+  /* Semantic */
+  --ok: #15803d;
+  --ok-bg: #f0fdf4;
+  --ok-bd: #bbf7d0;
+  --warn: #a16207;
+  --warn-bg: #fffbeb;
+  --warn-bd: #fde68a;
+  --err: #b91c1c;
+  --err-bg: #fef2f2;
+  --err-bd: #fecaca;
+  --info: #1d4ed8;
+  --info-bg: #eff6ff;
+  --info-bd: #bfdbfe;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-accent: 0 4px 16px rgba(71, 85, 105, 0.18);
+
+  /* Gradients */
+  --grad-brand: linear-gradient(135deg, #334155 0%, #64748b 65%, #94a3b8 100%);
+  --grad-surface: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+  --grad-accent: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  --grad-hero: linear-gradient(160deg, #fafafa 0%, #ffffff 40%, rgba(71, 85, 105, 0.06) 100%);
+
+  /* Data Visualization — placeholder, substituir por paleta do projeto */
+  --dv-1: #475569;
+  --dv-2: #4a9ab8;
+  --dv-3: #c8a030;
+  --dv-4: #c05858;
+  --dv-5: #9b6bc8;
+  --dv-6: #c87a3a;
+  --dv-7: #4ab8a0;
+  --dv-8: #8aaa3d;
+}
+
+/* ===== DARK MODE ===== */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0a0a0a;
+  --surface: #171717;
+  --elevated: #262626;
+  --border: #404040;
+  --border-hi: #525252;
+
+  --text-1: #fafafa;
+  --text-2: #a3a3a3;
+  --text-3: #737373;
+  --text-inv: #0a0a0a;
+
+  --accent: #94a3b8;
+  --accent-hi: #cbd5e1;
+  --accent-lo: #64748b;
+  --accent-bg: rgba(148, 163, 184, 0.12);
+  --accent-bd: rgba(148, 163, 184, 0.28);
+  --accent-glow: rgba(148, 163, 184, 0.35);
+
+  --accent2: #64748b;
+  --accent2-hi: #94a3b8;
+  --accent2-lo: #475569;
+  --accent2-bg: rgba(100, 116, 139, 0.1);
+  --accent2-bd: rgba(100, 116, 139, 0.22);
+  --accent2-glow: rgba(100, 116, 139, 0.2);
+
+  --ok: #4ade80;
+  --ok-bg: rgba(74, 222, 128, 0.1);
+  --ok-bd: rgba(74, 222, 128, 0.25);
+  --warn: #facc15;
+  --warn-bg: rgba(250, 204, 21, 0.1);
+  --warn-bd: rgba(250, 204, 21, 0.25);
+  --err: #f87171;
+  --err-bg: rgba(248, 113, 113, 0.1);
+  --err-bd: rgba(248, 113, 113, 0.25);
+  --info: #60a5fa;
+  --info-bg: rgba(96, 165, 250, 0.1);
+  --info-bd: rgba(96, 165, 250, 0.25);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --shadow-accent: 0 4px 20px rgba(148, 163, 184, 0.3);
+
+  --grad-brand: linear-gradient(135deg, #334155 0%, #64748b 65%, #94a3b8 100%);
+  --grad-surface: linear-gradient(135deg, #171717 0%, #262626 100%);
+  --grad-accent: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  --grad-hero: linear-gradient(160deg, #0a0a0a 0%, #171717 40%, rgba(148, 163, 184, 0.08) 100%);
+}
+
+/* ===== SHARED TOKENS ===== */
+:root {
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --display: 'Syne', sans-serif;
+
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+  --s9: 96px;
+
+  --r-xs: 2px;
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-full: 9999px;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 100ms;
+  --dur-base: 180ms;
+  --dur-slow: 300ms;
+}
+
+/* ===== BASE STYLES ===== */
+@layer base {
+  body {
+    background-color: var(--bg);
+    color: var(--text-1);
+    font-family: var(--font);
+    font-size: 0.875rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--text-1);
+    font-family: var(--font);
+  }
+
+  ::selection {
+    background-color: var(--accent-bg);
+    color: var(--accent-hi);
+  }
+}
