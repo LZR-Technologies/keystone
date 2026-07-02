@@ -1,5 +1,5 @@
 {
-  "name": "keystone",
+  "name": "lzr-keystone",
   "version": "0.1.0",
   "description": "Start a project that is born to professional standards — without building the foundation by hand.",
   "type": "module",
@@ -14,7 +14,14 @@
     "templates/web",
     "templates/api",
     "templates/agent-harness",
-    "docs"
+    "docs",
+    "!templates/*/node_modules",
+    "!templates/*/.next",
+    "!templates/*/.turbo",
+    "!templates/*/dist",
+    "!templates/*/coverage",
+    "!templates/*/test-results",
+    "!templates/*/playwright-report"
   ],
   "publishConfig": {
     "access": "public"

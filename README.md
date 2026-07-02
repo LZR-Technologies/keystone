@@ -64,9 +64,10 @@ _building_ the code, not to _guaranteeing_ its quality.
 
 ## Usage
 
-Not yet published to a registry. The public npm package name is not settled either — `keystone` is
-already taken by another package, so the published name will differ. Until it ships, run Keystone
-one of two ways:
+Not yet published to a registry. The public npm package name is **`lzr-keystone`** (`keystone`
+alone is already taken by another package; the `lzr-` prefix names the product line). The command
+it installs is still `keystone` — the package name is the shelf label, the command is what you
+type. Until it ships, run Keystone one of two ways:
 
 **From the repo (no build):**
 
@@ -84,12 +85,12 @@ node src/index.ts analyze .      # measure an existing project against the stand
 ```bash
 npm run build      # compile src/ → dist/ (what the package ships)
 npm pack           # produces a .tgz in the repo root
-npm i -g ./keystone-*.tgz
+npm i -g ./lzr-keystone-*.tgz
 keystone new my-app
 ```
 
-Once published, the commands above will read `keystone new my-app`, `keystone check .`, and
-`keystone analyze .` under whatever public package name is chosen.
+Once published, installation becomes `npm i -g lzr-keystone`, and the commands stay
+`keystone new my-app`, `keystone check .`, and `keystone analyze .`.
 
 ## Development
 
