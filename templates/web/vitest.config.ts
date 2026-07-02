@@ -34,53 +34,52 @@ export default defineConfig({
     // has no meaningful runtime cost for logic-only tests.
     environment: 'jsdom',
     exclude: [...configDefaults.exclude, 'e2e/**'],
+    // Registers RTL's cleanup(afterEach) -- see vitest.setup.ts for why this
+    // cannot rely on RTL's own auto-registration in this project.
+    setupFiles: ['./vitest.setup.ts'],
     coverage: {
       // v8 reads coverage straight from Node's built-in instrumentation --
       // no source transformation step, so it stays accurate for TypeScript
       // without a separate Istanbul-instrumented build.
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
-      include: ['src/**'],
+      // Scoped to the app's actual logic surface: business rules, hooks,
+      // utilities, the query registry, route handlers, and any component
+      // that renders a decision (not just static markup). Framework
+      // bootstrap glue is excluded below, by name, with its own comment --
+      // never by broadly excluding a whole directory "to be safe".
+      include: [
+        'src/lib/**',
+        'src/features/**',
+        'src/hooks/**',
+        'src/utils/**',
+        'src/app/api/**',
+        'src/components/**',
+      ],
       exclude: [
         ...(configDefaults.coverage.exclude ?? []),
         'e2e/**',
-        // Bootstrap/framework glue: these files wire libraries together and
-        // hold no branching logic of their own -- App Router requires them
-        // to exist as thin default exports, so there is nothing meaningful
-        // to unit-test (that behavior is covered by e2e/smoke instead).
-        'src/app/layout.tsx',
-        'src/app/providers.tsx',
-        'src/app/page.tsx',
-        // Route handlers: thin HTTP adapters over the worked-example
-        // in-memory store (src/app/api/v1/items/store.ts). The pyramid
-        // (CLAUDE.md, e2e/README.md) puts request/response wiring in the
-        // integration/e2e layers, not unit -- e2e/smoke already exercises
-        // GET /api/v1/health as the pattern to extend.
-        'src/app/api/**',
-        // Presentational components: no business logic of their own (the
-        // decisions they render live in features/items, which IS covered).
-        // Component rendering belongs in e2e/critical once a real screen
-        // depends on them -- see e2e/README.md's layer table.
-        'src/components/**',
         // Type-only modules: erased at compile time, so v8's runtime
         // instrumentation has nothing to record and would report a
         // permanent false 0%, skewing the aggregate.
         'src/lib/types.ts',
         'src/types/**',
       ],
-      // Thresholds are deliberately modest for a template: it ships with a
-      // handful of worked examples, not a full product. They exist so a
-      // project that adopts this template starts with coverage enforced
-      // from commit one, instead of bolting it on after the codebase has
-      // already grown past the point where anyone wants to. Raise them as
-      // real features (and their tests) land. Measured only over the files
-      // above (business logic, hooks, lib) -- UI rendering and route
-      // handlers are excluded on purpose, see the comments above.
+      // 100%: every included file is exercised on every line, branch,
+      // function, and statement. The only files excluded from the
+      // denominator are genuinely untestable framework glue / pure
+      // presentation / bootstrap (src/app/layout.tsx, src/app/page.tsx,
+      // src/app/providers.tsx -- excluded from `include` above, not listed
+      // under `exclude`, because they sit outside the included directories
+      // entirely) and type-only modules. Everything that ships inside the
+      // included directories -- hooks, features, api routes, the in-memory
+      // store, query-keys/config/invalidation, utilities, and any component
+      // with logic -- is tested to 100%, no broad carve-outs.
       thresholds: {
-        lines: 60,
-        statements: 60,
-        functions: 60,
-        branches: 60,
+        lines: 100,
+        statements: 100,
+        functions: 100,
+        branches: 100,
       },
     },
   },

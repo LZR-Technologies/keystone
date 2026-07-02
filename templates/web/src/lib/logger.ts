@@ -36,6 +36,12 @@ function formatEntry(entry: LogEntry): string {
   if (isProd) {
     return JSON.stringify(entry)
   }
+  // entry.timestamp is always produced by createLogger() below as
+  // new Date().toISOString() (never externally supplied -- formatEntry and
+  // this function are both module-private), which always contains 'T' and
+  // always has time content after it. The ?. / ?? here is defensive against
+  // that internal invariant changing, not a reachable branch today.
+  /* v8 ignore next */
   const time = entry.timestamp.split('T')[1]?.slice(0, 8) ?? ''
   const prefix = `[${time}] [${entry.module}]`
   const data = entry.data ? ` ${JSON.stringify(entry.data)}` : ''

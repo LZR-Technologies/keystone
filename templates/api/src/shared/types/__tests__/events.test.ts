@@ -4,9 +4,14 @@ import { events } from '../events.js'
 
 // Declaration merging is the documented way for a feature to register its
 // events (see events.ts) — this test doubles as a living example of it.
+// 'never.subscribed' is a second, distinct event name (never passed to
+// `on()` anywhere in this file) purely so one test below can exercise the
+// "nobody has ever subscribed to this event" branch — see that test for why
+// 'test.fired' cannot be reused for it.
 declare module '../events.js' {
   interface EventMap {
     'test.fired': { n: number }
+    'never.subscribed': { n: number }
   }
 }
 
@@ -36,10 +41,15 @@ describe('events', () => {
     expect(handler).not.toHaveBeenCalled()
   })
 
-  it('does nothing when emitting an event nobody listens to', async () => {
-    // Must not throw — emitting into the void is a normal situation
-    // (a feature emits before any consumer registered).
-    await expect(events.emit('test.fired', { n: 3 })).resolves.toBeUndefined()
+  it('does nothing when emitting an event nobody has ever subscribed to', async () => {
+    // Must use 'never.subscribed', not 'test.fired': other tests in this file
+    // call `on('test.fired', ...)` and then unsubscribe, which leaves an
+    // empty-but-EXISTING Set in the bus's internal Map. An empty Set and a
+    // missing Map entry are different internal states, and only the latter
+    // (an event with zero calls to `on()`, ever) exercises the
+    // `if (!handlers) return` branch in emit() — emitting into a truly empty
+    // void, e.g. a feature that emits before any consumer has registered.
+    await expect(events.emit('never.subscribed', { n: 3 })).resolves.toBeUndefined()
   })
 
   it('isolates a failing handler: the others still run', async () => {

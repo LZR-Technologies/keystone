@@ -67,6 +67,13 @@ test('scanDangerous: flags a shell command built with interpolation', () => {
   assert.equal(scanDangerous('a.ts', SHELL_SAMPLE).length, 1)
 })
 
+test('scanDangerous: no false positive on a database driver .exec() method call', () => {
+  // Every database driver exposes .exec/.query with template literals (e.g. the
+  // tenant-isolation integration tests) — a METHOD call is not a shell command.
+  const dbCall = 'await db.' + 'exec(`set role ${APP_ROLE};`)'
+  assert.deepEqual(scanDangerous('a.ts', dbCall), [])
+})
+
 test('scanDangerous: no false positive on an equality comparison', () => {
   // `===` must not be mistaken for an innerHTML assignment.
   assert.deepEqual(scanDangerous('a.ts', 'if (el.innerHTML === expected) ok();'), [])

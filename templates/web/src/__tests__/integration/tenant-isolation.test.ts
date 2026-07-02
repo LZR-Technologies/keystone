@@ -1,3 +1,13 @@
+// @vitest-environment node
+//
+// Overrides the project-wide jsdom environment (vitest.config.ts) for this
+// file only. PGlite's WASM/filesystem bootstrap calls a raw Response's
+// `.arrayBuffer()` during startup; jsdom's fetch/Response polyfill does not
+// implement it, so `db.exec()` throws "r.arrayBuffer is not a function"
+// under jsdom. Real Node has no such gap. This test has no DOM dependency
+// (no rendering, no hooks), so plain Node is also the more accurate
+// environment for what it actually exercises.
+
 /**
  * Integration test: tenant isolation via Row Level Security.
  *
@@ -9,16 +19,20 @@
  * cross-tenant reads and writes at the database level, independent of
  * anything application code remembers to do.
  *
- * Decision: skips cleanly when DATABASE_URL is unset (describe.skipIf).
- * `pnpm test` must stay green on a laptop or CI runner with no Postgres
- * available; this layer only activates where a real database is wired in
- * (see db/migrations/README.md and scripts/db-migrate.sh).
+ * Engine: @electric-sql/pglite, a WASM build of real Postgres that runs
+ * in-process (no daemon, no network socket, no DATABASE_URL). This is what
+ * makes the test RUN BY DEFAULT instead of skipping: `pnpm test` on a laptop
+ * or CI runner with no Postgres installed still exercises the real engine,
+ * the real migration file, and the real RLS policy -- not an approximation
+ * of one. Deploy-time migrations against the actual staging/production
+ * database (DATABASE_URL, scripts/db-migrate.sh) are a separate concern this
+ * test does not touch.
  */
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { Client } from 'pg'
+import { PGlite } from '@electric-sql/pglite'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -37,92 +51,120 @@ const MIGRATION_PATH = join(
 const TENANT_A = '11111111-1111-1111-1111-111111111111'
 const TENANT_B = '22222222-2222-2222-2222-222222222222'
 
+// Non-owner role RLS is asserted against. PGlite (like real Postgres) makes
+// the connecting owner/superuser BYPASS every row level security policy --
+// FORCE ROW LEVEL SECURITY only forces the policy onto the table's owner,
+// and the single implicit PGlite connection IS that owner. Without this
+// role, every assertion below would pass even if the policy in the
+// migration were deleted entirely, which would make the test worthless.
+const APP_ROLE = 'app_user'
+
 /**
- * Sets the RLS session variable for the current connection, mirroring what
- * the application does per-request in production (see the policy comment in
- * 0001_initial_schema.sql). The `false` third argument (not "is_local")
- * scopes the setting to the SESSION rather than the transaction, matching
- * how this standalone script -- which does not wrap each query in an
- * explicit transaction -- needs the setting to persist across statements.
+ * Runs `fn` with the RLS session variable scoped to `tenantId` (or unset,
+ * for the fail-closed case), under the non-owner role so the policy
+ * actually applies. `set_config(..., false)` -- the `false` third argument
+ * ("is_local") scopes the setting to the SESSION rather than the current
+ * transaction, mirroring what the application sets once per request in
+ * production (see the policy comment in 0001_initial_schema.sql).
+ *
+ * PGlite exposes one implicit connection/session (no pool), so `SET ROLE` /
+ * `RESET ROLE` here reliably bracket exactly the statements run inside `fn`.
  */
-async function setTenant(client: Client, tenantId: string | null): Promise<void> {
-  await client.query('select set_config($1, $2, false)', ['app.tenant_id', tenantId ?? ''])
+async function withTenant<T>(
+  db: PGlite,
+  tenantId: string | null,
+  fn: () => Promise<T>,
+): Promise<T> {
+  await db.exec(`set role ${APP_ROLE};`)
+  await db.query('select set_config($1, $2, false)', ['app.tenant_id', tenantId ?? ''])
+  try {
+    return await fn()
+  } finally {
+    // Always drop back to the owner role, even if `fn` throws (a rejected
+    // write is exactly what several assertions below expect) -- otherwise a
+    // failing test would leave later tests running as app_user by accident.
+    await db.exec('reset role;')
+  }
 }
 
-describe.skipIf(!process.env.DATABASE_URL)('tenant isolation (RLS)', () => {
-  let client: Client
+describe('tenant isolation (RLS)', () => {
+  let db: PGlite
 
   beforeAll(async () => {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- guarded by describe.skipIf above
-    client = new Client({ connectionString: process.env.DATABASE_URL! })
-    await client.connect()
+    db = new PGlite()
 
     // Run the real migration so this test proves the actual shipped policy,
-    // not a hand-written approximation of it. Idempotent (create/alter ...
-    // if not exists, drop policy if exists) so re-running against an
-    // already-migrated database is safe.
+    // not a hand-written approximation of it. Idempotent (create table/
+    // policy ... if not exists / drop policy if exists), matching the
+    // production migration runner's expectations.
     const migrationSql = readFileSync(MIGRATION_PATH, 'utf8')
-    await client.query(migrationSql)
+    await db.exec(migrationSql)
 
-    // Clean slate: delete any leftover rows from a previous run under the
-    // same fixed tenant ids. Force row level security is on, so cleanup
-    // goes through the same tenant-scoped path as the rest of the test
-    // rather than assuming a superuser bypass.
-    await setTenant(client, TENANT_A)
-    await client.query('delete from items where tenant_id = $1', [TENANT_A])
-    await setTenant(client, TENANT_B)
-    await client.query('delete from items where tenant_id = $1', [TENANT_B])
+    // The migration itself only creates the `items` table and its policy --
+    // it deliberately says nothing about application roles (that is a
+    // deployment/provisioning concern, not schema). This test supplies its
+    // own non-owner role so FORCE ROW LEVEL SECURITY has a role to bind to.
+    // NOLOGIN: this role only exists to be SET ROLE'd into within this
+    // process, never to authenticate a real connection.
+    await db.exec(`create role ${APP_ROLE} nologin;`)
+    await db.exec(`grant select, insert, update, delete on items to ${APP_ROLE};`)
   })
 
   afterAll(async () => {
-    await client?.end()
+    await db.close()
   })
 
   it('a session scoped to tenant A cannot read rows written by tenant B', async () => {
-    await setTenant(client, TENANT_A)
-    await client.query('insert into items (tenant_id, name) values ($1, $2)', [
-      TENANT_A,
-      'tenant-a-item',
-    ])
-
-    await setTenant(client, TENANT_B)
-    await client.query('insert into items (tenant_id, name) values ($1, $2)', [
-      TENANT_B,
-      'tenant-b-item',
-    ])
+    await withTenant(db, TENANT_A, () =>
+      db.query('insert into items (tenant_id, name) values ($1, $2)', [TENANT_A, 'tenant-a-item']),
+    )
+    await withTenant(db, TENANT_B, () =>
+      db.query('insert into items (tenant_id, name) values ($1, $2)', [TENANT_B, 'tenant-b-item']),
+    )
 
     // Still scoped to tenant B: a plain "select * from items" (no WHERE
     // tenant_id clause at all) must return ONLY tenant B's row. If the
     // policy were missing or misconfigured, this would return both rows.
-    const result = await client.query('select name, tenant_id from items')
+    const result = await withTenant(db, TENANT_B, () =>
+      db.query<{ name: string; tenant_id: string }>('select name, tenant_id from items'),
+    )
 
     expect(result.rows).toHaveLength(1)
     expect(result.rows[0]).toMatchObject({ name: 'tenant-b-item', tenant_id: TENANT_B })
   })
 
   it('a session with no tenant set sees zero rows, never everything', async () => {
-    // No set_config call for app.tenant_id at all in this test -- simulates
-    // a request that forgot to set the tenant. nullif(current_setting(...),
-    // '') must resolve to NULL, and the policy's NULL comparison must match
-    // zero rows: the fail-closed guarantee this migration exists to provide.
-    await setTenant(client, null)
-
-    const result = await client.query('select * from items')
+    // No app.tenant_id set for this session at all -- simulates a request
+    // that forgot to set the tenant. nullif(current_setting(...), '') must
+    // resolve to NULL, and the policy's NULL comparison must match zero
+    // rows: the fail-closed guarantee this migration exists to provide.
+    const result = await withTenant(db, null, () => db.query('select * from items'))
 
     expect(result.rows).toHaveLength(0)
   })
 
   it('a write attempted for another tenant is rejected by the WITH CHECK clause', async () => {
-    await setTenant(client, TENANT_A)
-
     // Attempts to insert a row tagged with TENANT_B while the session is
     // scoped to TENANT_A. The policy's WITH CHECK clause (not just USING)
     // is what blocks this -- USING alone would only filter reads.
     await expect(
-      client.query('insert into items (tenant_id, name) values ($1, $2)', [
-        TENANT_B,
-        'cross-tenant-write-attempt',
-      ]),
+      withTenant(db, TENANT_A, () =>
+        db.query('insert into items (tenant_id, name) values ($1, $2)', [
+          TENANT_B,
+          'cross-tenant-write-attempt',
+        ]),
+      ),
     ).rejects.toThrow(/row-level security/i)
+  })
+
+  it('the owning tenant reads exactly its own rows', async () => {
+    // Closes the loop on the four properties: A's session sees neither zero
+    // rows nor B's row, only the one row it is actually entitled to.
+    const result = await withTenant(db, TENANT_A, () =>
+      db.query<{ name: string; tenant_id: string }>('select name, tenant_id from items'),
+    )
+
+    expect(result.rows).toHaveLength(1)
+    expect(result.rows[0]).toMatchObject({ name: 'tenant-a-item', tenant_id: TENANT_A })
   })
 })

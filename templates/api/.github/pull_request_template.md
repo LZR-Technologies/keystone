@@ -35,7 +35,7 @@ Closes #
 - [ ] `pnpm run lint` with no new errors
 - [ ] `pnpm run test` passes
 - [ ] `pnpm run build` passes
-- [ ] Test coverage >= 80% on new features
+- [ ] Test coverage = 100% (enforced by `pnpm run test:coverage`; see vitest.config.ts for the two honest bootstrap-file exclusions)
 
 ### Security
 

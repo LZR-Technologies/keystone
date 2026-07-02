@@ -33,7 +33,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const parsed = renameSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json(
-      problem(400, 'Bad Request', parsed.error.issues[0]?.message ?? 'Invalid request body.'),
+      problem(
+        400,
+        'Bad Request',
+        // zod's SafeParseError guarantees a non-empty `issues` array with a
+        // required `message: string` on every issue whenever `success` is
+        // false -- verified against every malformed-input shape this schema
+        // can reject. The ?. / ?? here is defensive against a zod contract
+        // change, not a reachable branch today.
+        /* v8 ignore next */
+        parsed.error.issues[0]?.message ?? 'Invalid request body.',
+      ),
       { status: 400 },
     )
   }

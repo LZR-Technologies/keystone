@@ -29,6 +29,7 @@
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
     "@commitlint/config-conventional": "^19.0.0",
+    "@electric-sql/pglite": "^0.5.4",
     "@eslint/js": "^9.0.0",
     "@repo/commitlint-config": "file:./config/commitlint-config",
     "@repo/eslint-config": "file:./config/eslint-config",

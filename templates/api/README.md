@@ -116,16 +116,16 @@ backwards. Register the module's routes in `src/app.ts`.
 
 ## Scripts
 
-| Script               | What it does                                |
-| -------------------- | ------------------------------------------- |
-| `pnpm dev`           | Dev server with hot reload                  |
-| `pnpm build`         | Compile TypeScript                          |
-| `pnpm start`         | Run the build in production                 |
-| `pnpm typecheck`     | Type check                                  |
-| `pnpm lint`          | Run ESLint                                  |
-| `pnpm test`          | Run tests                                   |
-| `pnpm test:coverage` | Tests with coverage (80% minimum, enforced) |
-| `pnpm db:migrate`    | Apply SQL migrations (needs `DATABASE_URL`) |
+| Script               | What it does                                   |
+| -------------------- | ---------------------------------------------- |
+| `pnpm dev`           | Dev server with hot reload                     |
+| `pnpm build`         | Compile TypeScript                             |
+| `pnpm start`         | Run the build in production                    |
+| `pnpm typecheck`     | Type check                                     |
+| `pnpm lint`          | Run ESLint                                     |
+| `pnpm test`          | Run tests                                      |
+| `pnpm test:coverage` | Tests with coverage (100% threshold, enforced) |
+| `pnpm db:migrate`    | Apply SQL migrations (needs `DATABASE_URL`)    |
 
 ## Database
 

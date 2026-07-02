@@ -46,7 +46,7 @@ Run the same checks CI runs, so a red pipeline is never a surprise:
 pnpm typecheck
 pnpm lint
 pnpm test
-pnpm run test:coverage   # 80% minimum threshold, enforced
+pnpm run test:coverage   # 100% threshold, enforced
 pnpm build
 ```
 

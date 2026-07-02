@@ -6,7 +6,7 @@
 --
 -- Conventions demonstrated here (each explained inline where used):
 --   1. snake_case identifiers everywhere in the database
---   2. UUID primary keys via pgcrypto's gen_random_uuid()
+--   2. UUID primary keys via core gen_random_uuid() (PostgreSQL 13+, no extension)
 --   3. tenant_id on every business table (tenant isolation)
 --   4. created_at / updated_at timestamps, updated_at kept fresh by trigger
 --   5. deleted_at soft delete (rows are marked, never destroyed)
@@ -21,11 +21,10 @@
 -- Extensions
 -- ---------------------------------------------------------------------------
 
--- pgcrypto provides gen_random_uuid(). Chosen over uuid-ossp because pgcrypto
--- ships with every modern PostgreSQL (13+) and gen_random_uuid() is also a
--- core function from PG13 on -- the extension keeps compatibility with
--- managed hosts that still route it through pgcrypto.
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- No extension required for gen_random_uuid(): it has been a CORE function
+-- (not pgcrypto-provided) since PostgreSQL 13. This project targets PG13+,
+-- so the pgcrypto extension is intentionally omitted -- requiring it would
+-- fail on managed/embedded Postgres builds that do not ship it.
 
 -- ---------------------------------------------------------------------------
 -- Shared trigger: keep updated_at honest

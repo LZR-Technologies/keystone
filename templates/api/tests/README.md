@@ -30,12 +30,16 @@ Both locations are picked up by `pnpm run test` (see `vitest.config.ts`).
 3. **Integration — against a REAL database.** Mocks lie: a mocked repository
    happily "passes" against a query the real Postgres would reject, and no
    mock exercises an RLS policy. Anything that owns SQL or a policy gets
-   verified against a real database (a throwaway local Postgres, migrated by
-   `scripts/db-migrate.sh`). Example: `tests/integration/tenant-isolation.test.ts`
+   verified against a real database. Example: `tests/integration/tenant-isolation.test.ts`
    runs the real `0001_initial_schema.sql` migration and proves the RLS
-   policy blocks cross-tenant reads and writes — it skips cleanly
-   (`describe.skipIf`) when `DATABASE_URL` is not set, so `pnpm run test`
-   stays green with no database wired in.
+   policy blocks cross-tenant reads and writes. By default this runs against
+   `@electric-sql/pglite` — a WASM build of real Postgres started in-process,
+   no daemon and no `DATABASE_URL` required — so `pnpm run test` exercises the
+   actual RLS engine on every run, not a mock of it. An optional second suite
+   in the same file runs the identical properties against a networked
+   Postgres (migrated by `scripts/db-migrate.sh`) when `DATABASE_URL` is set,
+   for CI parity with a production-like engine; it skips cleanly
+   (`describe.skipIf`) otherwise.
 4. **End-to-end (the top — few tests).** The whole service, boot to response.
    Expensive and slower, so they cover the critical paths only; everything
    else is already proven by the layers below. Example: `src/__tests__/app.test.ts`
@@ -58,8 +62,9 @@ shipped without its test:
 - **Tests are never deleted to make a run pass.** A red test is information:
   either the code is wrong (fix the code) or the requirement changed (change
   the test in the same PR as the requirement).
-- Coverage is enforced at 80% minimum (`vitest.config.ts`) with only the
-  process bootstrap (`server.ts`, `index.ts`) excluded — thresholds are never
+- Coverage is enforced at 100% (`vitest.config.ts`) with only the process
+  bootstrap (`server.ts`, `index.ts`) excluded — each exclusion carries its
+  own justifying comment in `vitest.config.ts`, and thresholds are never
   lowered to make a number look good.
 
 ## Commands
@@ -67,5 +72,5 @@ shipped without its test:
 ```bash
 pnpm run test           # full suite, once
 pnpm run test:watch     # watch mode while developing
-pnpm run test:coverage  # suite + coverage report and 80% threshold check
+pnpm run test:coverage  # suite + coverage report and 100% threshold check
 ```

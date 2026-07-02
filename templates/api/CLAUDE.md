@@ -94,9 +94,9 @@ Full doc: [tests/README.md](tests/README.md). The short version:
   (mocks lie about SQL and RLS), and a few end-to-end tests at the top.
 - **The suite never stabilizes, it only grows** with the code. Every feature
   ships with its test in the same PR; every bug fix starts with a failing test.
-- Coverage threshold: 80% (enforced by `pnpm run test:coverage`). Only the
-  process bootstrap (`server.ts`, `index.ts`) is excluded; thresholds are
-  never lowered.
+- Coverage threshold: 100% (enforced by `pnpm run test:coverage`). Only the
+  process bootstrap (`server.ts`, `index.ts`) is excluded, each with a
+  justifying comment in `vitest.config.ts`; thresholds are never lowered.
 - App-level tests use `buildApp()` + Fastify `inject()` — no ports, no network.
 
 ## Database conventions

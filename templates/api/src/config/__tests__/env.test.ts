@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { parseEnv } from '../env.js'
 
@@ -38,5 +38,49 @@ describe('parseEnv', () => {
     const result = parseEnv({ DATABASE_URL: 'not-a-url' })
 
     expect(result.success).toBe(false)
+  })
+})
+
+describe('env (module-load-time singleton)', () => {
+  const ORIGINAL_ENV = { ...process.env }
+
+  afterEach(() => {
+    // Every test in this block mutates process.env and re-imports the
+    // module; restore both so later test files see the real environment
+    // and the real (already-loaded) env singleton, not a stale mock.
+    process.env = { ...ORIGINAL_ENV }
+    vi.resetModules()
+    vi.restoreAllMocks()
+  })
+
+  it('exports a parsed env built from the real process.env on import', async () => {
+    process.env = { ...ORIGINAL_ENV, PORT: '4321' }
+    vi.resetModules()
+
+    // Dynamic import after resetModules: env.ts runs loadEnv() at its own
+    // module-evaluation time, so this is the only way to observe it with a
+    // controlled process.env instead of whatever was set before this file ran.
+    const { env } = await import('../env.js')
+
+    expect(env.PORT).toBe(4321)
+  })
+
+  it('writes the field error to stderr and exits the process when the environment is invalid', async () => {
+    process.env = { ...ORIGINAL_ENV, NODE_ENV: 'not-a-real-environment' }
+    vi.resetModules()
+
+    const stderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
+    // process.exit(1) must not actually kill the test worker. Throwing from
+    // the mock stops loadEnv() at the same point real process.exit would
+    // (nothing after it in the function runs), which is what the assertion
+    // below on the export itself is set up to expect a rejection for.
+    const processExit = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit was called')
+    })
+
+    await expect(import('../env.js')).rejects.toThrow('process.exit was called')
+
+    expect(stderrWrite).toHaveBeenCalledWith(expect.stringContaining('NODE_ENV'))
+    expect(processExit).toHaveBeenCalledWith(1)
   })
 })

@@ -1,18 +1,16 @@
 -- 0001_initial_schema.sql
 --
--- Foundation migration: extensions, the shared updated_at trigger function,
--- and one example table ("items") that embodies every database convention of
--- this template. New tables copy this shape.
+-- Foundation migration: the shared updated_at trigger function and one
+-- example table ("items") that embodies every database convention of this
+-- template. New tables copy this shape.
 --
 -- Convention: ALL database identifiers (tables, columns, functions, indexes,
 -- policies) are snake_case. Postgres folds unquoted identifiers to lowercase,
 -- so camelCase would force quoting every identifier in every query forever.
 -- Application code stays camelCase; the repository layer owns the mapping.
-
--- pgcrypto provides gen_random_uuid(). Postgres 13+ ships it in core, but we
--- enable the extension explicitly so the migration also works on hosts that
--- still wire the function through pgcrypto.
-create extension if not exists pgcrypto;
+--
+-- Requires Postgres 13+: gen_random_uuid() (used below) is core as of 13, so
+-- no "create extension pgcrypto" is needed here.
 
 -- Shared trigger function: keeps updated_at honest on every UPDATE.
 -- Why a trigger and not application code: every write path (app, psql,

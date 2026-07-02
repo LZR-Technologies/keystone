@@ -29,7 +29,12 @@ const DOC_WRITE = new RegExp('document\\.' + 'wr' + 'ite\\s*\\(')
 // Shell command built with an interpolated template literal = command injection.
 // Restricted to the interpolation case on purpose: a plain constant command is
 // fine, only a value spliced into the command string is the risk.
-const SHELL_EXEC = new RegExp('\\b' + 'ex' + 'ec(?:Sync)?\\s*\\(\\s*`[^`]*\\$\\{')
+// The lookbehind excludes METHOD calls (`db.exec(...)`): every database driver
+// exposes .exec/.query, and flagging those buried the real signal in noise. The
+// shell primitives are called as bare imports in practice; a namespaced
+// `cp.execSync(...)` slips through — accepted trade-off, consistent with this
+// guard's stated philosophy (a precise small net beats a noisy big one).
+const SHELL_EXEC = new RegExp('(?<!\\.)\\b' + 'ex' + 'ec(?:Sync)?\\s*\\(\\s*`[^`]*\\$\\{')
 
 const DANGEROUS_PATTERNS: { name: string; re: RegExp }[] = [
   { name: 'dynamic code execution', re: EVAL },

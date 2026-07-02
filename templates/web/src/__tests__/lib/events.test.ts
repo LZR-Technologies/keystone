@@ -36,4 +36,42 @@ describe('event bus', () => {
     expect(good).toHaveBeenCalled()
     events.clear()
   })
+
+  it('off() unsubscribes a handler directly, as an alternative to the on() return value', async () => {
+    const handler = vi.fn()
+    events.on('item.created', handler)
+    events.off('item.created', handler)
+    await events.emit('item.created', { itemId: 'a1' })
+    expect(handler).not.toHaveBeenCalled()
+    events.clear()
+  })
+
+  it('off() on an event with no subscribers is a no-op, not a throw', () => {
+    expect(() => events.off('item.deleted', vi.fn())).not.toThrow()
+  })
+
+  it('a handler that throws a non-Error value is still logged and isolated, via String() not .message', async () => {
+    const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const bad = vi.fn(() => {
+      // Deliberately not an Error -- exercises the String(error) fallback
+      // branch in events.ts's catch block, not error.message.
+      throw 'plain string rejection'
+    })
+    const good = vi.fn()
+    events.on('item.updated', bad)
+    events.on('item.updated', good)
+
+    await events.emit('item.updated', { itemId: 'a1', fields: ['name'] })
+
+    expect(good).toHaveBeenCalled()
+    // instanceof Error is false for a thrown string, so the emitter must
+    // fall back to String(error) rather than reading a non-existent
+    // .message. The logger formats level+module+message+data into a single
+    // string argument (see logger.ts), hence one string assertion here.
+    expect(logSpy).toHaveBeenCalledTimes(1)
+    const [line] = logSpy.mock.calls[0] as [string]
+    expect(line).toContain('"error":"plain string rejection"')
+    logSpy.mockRestore()
+    events.clear()
+  })
 })

@@ -89,10 +89,12 @@ Four layers, most tests at the bottom:
    time injected as data. Model to imitate: `src/features/items/archive-policy.ts`
    and its test `src/__tests__/features/items/archive-policy.test.ts`.
 3. **Integration** — data access against a **real database** (mocks lie:
-   they encode beliefs, not behavior). Runs against a disposable local
-   PostgreSQL with the real migrations applied via `scripts/db-migrate.sh`,
-   and skips cleanly (`describe.skipIf`) when `DATABASE_URL` is unset, so
-   `pnpm test` stays green with no database wired in. Model to imitate:
+   they encode beliefs, not behavior). Runs the real migration files against
+   `@electric-sql/pglite`, an in-process WASM Postgres -- no daemon, no
+   `DATABASE_URL`, so this layer runs by default instead of skipping, on a
+   laptop or any CI runner. Deploy-time migrations against the actual
+   staging/production database (`scripts/db-migrate.sh`) are a separate,
+   later step. Model to imitate:
    `src/__tests__/integration/tenant-isolation.test.ts`, which proves the
    row-level-security policy in `db/migrations/0001_initial_schema.sql`
    actually blocks cross-tenant reads and writes.
