@@ -85,6 +85,9 @@ test('copyFilterFor: keeps mould files even when the mould lives under node_modu
   assert.equal(keep(root), true, 'the mould root itself is copyable')
   assert.equal(keep(`${root}/package.json`), true, 'a mould file is copyable')
   assert.equal(keep(`${root}/src/index.ts`), true, 'a nested mould file is copyable')
-  // A real nested dependencies folder inside the mould is still skipped.
+  // Real nested dependency and build-output folders inside the mould are still skipped,
+  // so a stray local build never bloats a generated project.
   assert.equal(keep(`${root}/node_modules/left-pad/index.js`), false, 'nested deps are skipped')
+  assert.equal(keep(`${root}/.next/static/chunk.js`), false, 'Next.js build output is skipped')
+  assert.equal(keep(`${root}/dist/index.js`), false, 'compiled output is skipped')
 })

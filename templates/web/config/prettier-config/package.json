@@ -8,10 +8,15 @@
     "url": "https://github.com/your-org/prettier-config.git"
   },
   "main": "index.json",
-  "files": ["index.json"],
+  "files": [
+    "index.json"
+  ],
   "peerDependencies": {
     "prettier": ">=3.0.0",
     "prettier-plugin-tailwindcss": ">=0.5.0"
   },
-  "keywords": ["prettier", "config"]
+  "keywords": [
+    "prettier",
+    "config"
+  ]
 }

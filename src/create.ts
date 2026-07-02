@@ -49,17 +49,22 @@ export interface CreateResult {
   deduced: DeducedChoices
 }
 
+// Directories that are dependencies, build output, or VCS metadata — never copied into a
+// new project, even if a stray local build left them in the mould. Keeps a generated
+// project clean and small.
+const NON_COPYABLE_DIRS = new Set(['node_modules', '.git', 'dist', '.next', '.turbo', 'coverage'])
+
 /**
- * Build a copy filter that skips build noise (node_modules) INSIDE a mould, judged by
+ * Build a copy filter that skips the non-copyable directories INSIDE a mould, judged by
  * the path relative to the mould root — never the absolute path. This matters when
  * Keystone itself is installed: the mould then lives under `.../node_modules/keystone/
  * templates/...`, so an absolute-path check would see "node_modules" in every path and
- * copy nothing. Relative to the mould root, only a real nested node_modules is skipped.
+ * copy nothing. Relative to the mould root, only a real nested build/deps dir is skipped.
  */
 export function copyFilterFor(sourceRoot: string): (source: string) => boolean {
   return (source: string) => {
     const rel = relative(sourceRoot, source)
-    return !rel.split(/[\\/]/).includes('node_modules')
+    return !rel.split(/[\\/]/).some((segment) => NON_COPYABLE_DIRS.has(segment))
   }
 }
 

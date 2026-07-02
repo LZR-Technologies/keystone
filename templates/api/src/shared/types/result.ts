@@ -3,9 +3,7 @@
  * Handbook: "Return { success, data, error } instead of throwing"
  */
 
-export type Result<T, E = Error> =
-  | { success: true; data: T }
-  | { success: false; error: E }
+export type Result<T, E = Error> = { success: true; data: T } | { success: false; error: E }
 
 export function ok<T>(data: T): Result<T, never> {
   return { success: true, data }

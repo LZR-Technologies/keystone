@@ -47,24 +47,44 @@ import { HTTP } from '../constants/http.js'
 
 export class ValidationError extends AppError {
   constructor(detail: string) {
-    super(HTTP.UNPROCESSABLE_ENTITY, 'https://api.example.com/errors/validation', 'Validation Error', detail)
+    super(
+      HTTP.UNPROCESSABLE_ENTITY,
+      'https://api.example.com/errors/validation',
+      'Validation Error',
+      detail,
+    )
   }
 }
 
 export class NotFoundError extends AppError {
   constructor(resource: string) {
-    super(HTTP.NOT_FOUND, 'https://api.example.com/errors/not-found', 'Not Found', `${resource} not found`)
+    super(
+      HTTP.NOT_FOUND,
+      'https://api.example.com/errors/not-found',
+      'Not Found',
+      `${resource} not found`,
+    )
   }
 }
 
 export class UnauthorizedError extends AppError {
   constructor() {
-    super(HTTP.UNAUTHORIZED, 'https://api.example.com/errors/unauthorized', 'Unauthorized', 'Authentication required')
+    super(
+      HTTP.UNAUTHORIZED,
+      'https://api.example.com/errors/unauthorized',
+      'Unauthorized',
+      'Authentication required',
+    )
   }
 }
 
 export class ForbiddenError extends AppError {
   constructor() {
-    super(HTTP.FORBIDDEN, 'https://api.example.com/errors/forbidden', 'Forbidden', 'Insufficient permissions')
+    super(
+      HTTP.FORBIDDEN,
+      'https://api.example.com/errors/forbidden',
+      'Forbidden',
+      'Insufficient permissions',
+    )
   }
 }

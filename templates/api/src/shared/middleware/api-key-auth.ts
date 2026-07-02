@@ -19,9 +19,7 @@ export function hashApiKey(key: string): string {
 }
 
 export function createApiKeyAuth(
-  lookupKey: (
-    hash: string,
-  ) => Promise<{
+  lookupKey: (hash: string) => Promise<{
     id: string
     name: string
     scopes: string[]
@@ -49,11 +47,7 @@ export function createApiKeyAuth(
       reply.code(HTTP.FORBIDDEN).send({ error: 'API key expired' })
       return
     }
-    if (
-      requiredScope &&
-      !record.scopes.includes('*') &&
-      !record.scopes.includes(requiredScope)
-    ) {
+    if (requiredScope && !record.scopes.includes('*') && !record.scopes.includes(requiredScope)) {
       reply.code(HTTP.FORBIDDEN).send({ error: 'Insufficient scope' })
       return
     }

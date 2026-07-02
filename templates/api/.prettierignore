@@ -1,0 +1,11 @@
+# Generated output and dependencies — never formatted.
+node_modules/
+dist/
+coverage/
+
+# Lockfile is machine-generated in the package manager's own format, not Prettier's.
+pnpm-lock.yaml
+
+# Agent harness (Layer B) — the coding agent's own configuration, laid on top of the
+# project. It is not product source, so the product's formatter does not govern it.
+.claude/

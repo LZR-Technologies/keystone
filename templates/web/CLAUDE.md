@@ -23,16 +23,16 @@ This project is born with a harness for the AI that builds it. Full map in
 
 ## Stack
 
-| Package | Purpose |
-| --- | --- |
-| next | Framework (App Router) |
-| react | UI |
-| typescript | Language (strict mode) |
-| tailwindcss | Styling |
-| @tanstack/react-query | Server state |
-| react-hook-form + zod | Forms + validation |
-| vitest | Unit tests |
-| @playwright/test | End-to-end tests |
+| Package               | Purpose                |
+| --------------------- | ---------------------- |
+| next                  | Framework (App Router) |
+| react                 | UI                     |
+| typescript            | Language (strict mode) |
+| tailwindcss           | Styling                |
+| @tanstack/react-query | Server state           |
+| react-hook-form + zod | Forms + validation     |
+| vitest                | Unit tests             |
+| @playwright/test      | End-to-end tests       |
 
 Do not add a dependency without checking the stack does not already cover it.
 

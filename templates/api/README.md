@@ -4,15 +4,15 @@ An official starting point for services (APIs) on **TypeScript/Node**.
 
 ## Stack
 
-| Technology | Role |
-| --- | --- |
-| **TypeScript** | Language (strict mode, zero `any`) |
-| **Fastify** | HTTP framework |
-| **Zod** | Schema validation |
-| **Pino** | Structured logging (JSON) |
-| **Vitest** | Unit and integration tests |
-| **ESLint + Prettier** | Linting and formatting (`@repo/*` configs) |
-| **CommitLint + Husky** | Conventional commits |
+| Technology             | Role                                       |
+| ---------------------- | ------------------------------------------ |
+| **TypeScript**         | Language (strict mode, zero `any`)         |
+| **Fastify**            | HTTP framework                             |
+| **Zod**                | Schema validation                          |
+| **Pino**               | Structured logging (JSON)                  |
+| **Vitest**             | Unit and integration tests                 |
+| **ESLint + Prettier**  | Linting and formatting (`@repo/*` configs) |
+| **CommitLint + Husky** | Conventional commits                       |
 
 ## Quick start
 
@@ -92,27 +92,27 @@ src/features/companies/
 
 ## Conventions
 
-| Convention | Where |
-| --- | --- |
-| **Zero `any`** | tsconfig strict + ESLint rule |
-| **Result pattern** | `ok(data)` / `fail(error)` in `shared/types` |
-| **RFC 9457** | Error handler returns Problem Details |
-| **Zod validation** | Every external input validated |
-| **Structured logging** | Pino JSON with a trace id |
-| **Feature-based** | Code organized by domain |
-| **Barrel exports** | `index.ts` in each feature |
+| Convention             | Where                                        |
+| ---------------------- | -------------------------------------------- |
+| **Zero `any`**         | tsconfig strict + ESLint rule                |
+| **Result pattern**     | `ok(data)` / `fail(error)` in `shared/types` |
+| **RFC 9457**           | Error handler returns Problem Details        |
+| **Zod validation**     | Every external input validated               |
+| **Structured logging** | Pino JSON with a trace id                    |
+| **Feature-based**      | Code organized by domain                     |
+| **Barrel exports**     | `index.ts` in each feature                   |
 
 ## Scripts
 
-| Script | What it does |
-| --- | --- |
-| `pnpm dev` | Dev server with hot reload |
-| `pnpm build` | Compile TypeScript |
-| `pnpm start` | Run the build in production |
-| `pnpm typecheck` | Type check |
-| `pnpm lint` | Run ESLint |
-| `pnpm test` | Run tests |
-| `pnpm test:coverage` | Tests with coverage (>80%) |
+| Script               | What it does                |
+| -------------------- | --------------------------- |
+| `pnpm dev`           | Dev server with hot reload  |
+| `pnpm build`         | Compile TypeScript          |
+| `pnpm start`         | Run the build in production |
+| `pnpm typecheck`     | Type check                  |
+| `pnpm lint`          | Run ESLint                  |
+| `pnpm test`          | Run tests                   |
+| `pnpm test:coverage` | Tests with coverage (>80%)  |
 
 ## Reference
 

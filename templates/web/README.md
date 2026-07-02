@@ -4,17 +4,17 @@ An official starting point for web apps on **Next.js App Router**.
 
 ## Stack
 
-| Technology | Role |
-| --- | --- |
-| **Next.js 15** | Framework (App Router) |
-| **React 19** | UI (Server Components by default) |
-| **TypeScript** | Language (strict mode, zero `any`) |
-| **Tailwind CSS** | Styling |
-| **React Query** | Client-side caching / polling |
-| **Zustand** | Minimal global state |
-| **React Hook Form + Zod** | Forms + validation |
-| **Vitest** | Unit tests |
-| **Playwright** | End-to-end tests |
+| Technology                | Role                               |
+| ------------------------- | ---------------------------------- |
+| **Next.js 15**            | Framework (App Router)             |
+| **React 19**              | UI (Server Components by default)  |
+| **TypeScript**            | Language (strict mode, zero `any`) |
+| **Tailwind CSS**          | Styling                            |
+| **React Query**           | Client-side caching / polling      |
+| **Zustand**               | Minimal global state               |
+| **React Hook Form + Zod** | Forms + validation                 |
+| **Vitest**                | Unit tests                         |
+| **Playwright**            | End-to-end tests                   |
 
 ## Quick start
 
@@ -59,24 +59,24 @@ src/
 
 ## Conventions
 
-| Convention | Where |
-| --- | --- |
-| **Server Components** | Default — `'use client'` only for interactivity |
-| **React Query** | Client caching via `providers.tsx` |
-| **Zustand** | Minimal global state (add as needed) |
-| **React Hook Form + Zod** | Typed, validated forms |
-| **Result pattern** | `apiFetch()` in `lib/fetch.ts` |
-| **RFC 9457** | Errors as Problem Details |
-| **Security headers** | Configured in `next.config.ts` |
-| **Design tokens** | CSS variables in `globals.css` |
+| Convention                | Where                                           |
+| ------------------------- | ----------------------------------------------- |
+| **Server Components**     | Default — `'use client'` only for interactivity |
+| **React Query**           | Client caching via `providers.tsx`              |
+| **Zustand**               | Minimal global state (add as needed)            |
+| **React Hook Form + Zod** | Typed, validated forms                          |
+| **Result pattern**        | `apiFetch()` in `lib/fetch.ts`                  |
+| **RFC 9457**              | Errors as Problem Details                       |
+| **Security headers**      | Configured in `next.config.ts`                  |
+| **Design tokens**         | CSS variables in `globals.css`                  |
 
 ## Performance (Core Web Vitals)
 
-| Metric | Target |
-| --- | --- |
-| LCP | < 2.5s |
-| INP | < 200ms |
-| CLS | < 0.1 |
+| Metric | Target  |
+| ------ | ------- |
+| LCP    | < 2.5s  |
+| INP    | < 200ms |
+| CLS    | < 0.1   |
 
 - Always use `next/image` with `sizes`
 - Server Components by default
@@ -84,14 +84,14 @@ src/
 
 ## Scripts
 
-| Script | What it does |
-| --- | --- |
-| `pnpm dev` | Dev server |
-| `pnpm build` | Production build |
-| `pnpm typecheck` | Type check |
-| `pnpm lint` | ESLint + Next.js lint |
-| `pnpm test` | Unit tests (Vitest) |
-| `pnpm test:e2e` | End-to-end tests (Playwright) |
+| Script           | What it does                  |
+| ---------------- | ----------------------------- |
+| `pnpm dev`       | Dev server                    |
+| `pnpm build`     | Production build              |
+| `pnpm typecheck` | Type check                    |
+| `pnpm lint`      | ESLint + Next.js lint         |
+| `pnpm test`      | Unit tests (Vitest)           |
+| `pnpm test:e2e`  | End-to-end tests (Playwright) |
 
 ## Reference
 

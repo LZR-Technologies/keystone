@@ -23,13 +23,13 @@ This project is born with a harness for the AI that builds it. Full map in
 
 ## Stack
 
-| Package | Purpose |
-| --- | --- |
-| fastify | HTTP framework |
-| zod | Validation |
-| pino | Structured logging |
+| Package    | Purpose                |
+| ---------- | ---------------------- |
+| fastify    | HTTP framework         |
+| zod        | Validation             |
+| pino       | Structured logging     |
 | typescript | Language (strict mode) |
-| vitest | Tests |
+| vitest     | Tests                  |
 
 Do not add a dependency without checking the stack does not already cover it.
 

@@ -13,5 +13,8 @@
     "tsconfig.next.json",
     "tsconfig.react-native.json"
   ],
-  "keywords": ["tsconfig", "typescript"]
+  "keywords": [
+    "tsconfig",
+    "typescript"
+  ]
 }

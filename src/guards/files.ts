@@ -3,8 +3,19 @@
 import { readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 
-const IGNORED_DIRS = new Set(['node_modules', '.git', 'dist', 'docs'])
-const ALWAYS_IGNORED = new Set(['node_modules', '.git', 'dist'])
+// Build output, dependencies, and VCS metadata — never worth guarding. '.next' (Next.js),
+// '.turbo', and 'coverage' join the list so scanning a real project does not trip over
+// minified framework code (which legitimately uses innerHTML and the like).
+const IGNORED_DIRS = new Set([
+  'node_modules',
+  '.git',
+  'dist',
+  'docs',
+  '.next',
+  '.turbo',
+  'coverage',
+])
+const ALWAYS_IGNORED = new Set(['node_modules', '.git', 'dist', '.next', '.turbo', 'coverage'])
 // Generated lockfiles are machine output, not code to review — a linter/size guard has
 // nothing to say about them, and flagging one is a false positive. Skip them everywhere.
 const IGNORED_FILES = new Set(['package-lock.json', 'pnpm-lock.yaml', 'yarn.lock'])

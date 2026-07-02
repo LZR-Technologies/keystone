@@ -9,12 +9,12 @@ interface LoadingSkeletonProps {
 }
 
 function SkeletonBar({ className }: { className?: string }) {
-  return <div className={cn('bg-elevated animate-pulse rounded', className)} aria-hidden="true" />
+  return <div className={cn('animate-pulse rounded bg-elevated', className)} aria-hidden="true" />
 }
 
 function CardSkeleton() {
   return (
-    <div className="border-border bg-surface space-y-3 rounded-lg border p-4">
+    <div className="space-y-3 rounded-lg border border-border bg-surface p-4">
       <SkeletonBar className="h-4 w-3/4" />
       <SkeletonBar className="h-3 w-1/2" />
       <SkeletonBar className="h-3 w-full" />
@@ -28,7 +28,7 @@ function ListSkeleton({ count }: { count: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="border-border bg-surface flex items-center gap-3 rounded-lg border p-3"
+          className="flex items-center gap-3 rounded-lg border border-border bg-surface p-3"
         >
           <SkeletonBar className="h-5 w-5 rounded" />
           <SkeletonBar className="h-4 flex-1" />

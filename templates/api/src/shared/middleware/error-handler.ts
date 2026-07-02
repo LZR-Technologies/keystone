@@ -19,21 +19,21 @@ export function errorHandler(
 
     logger.warn({ err: error, trace_id: traceId }, error.detail)
 
-    reply.status(error.status).header('content-type', 'application/problem+json').send(problemDetail)
+    reply
+      .status(error.status)
+      .header('content-type', 'application/problem+json')
+      .send(problemDetail)
     return
   }
 
   // Unexpected error — log and return a generic 500
   logger.error({ err: error, trace_id: traceId }, 'Unhandled error')
 
-  reply
-    .status(HTTP.INTERNAL_SERVER_ERROR)
-    .header('content-type', 'application/problem+json')
-    .send({
-      type: 'https://api.example.com/errors/internal',
-      title: 'Internal Server Error',
-      status: HTTP.INTERNAL_SERVER_ERROR,
-      detail: 'An unexpected error occurred',
-      trace_id: traceId,
-    })
+  reply.status(HTTP.INTERNAL_SERVER_ERROR).header('content-type', 'application/problem+json').send({
+    type: 'https://api.example.com/errors/internal',
+    title: 'Internal Server Error',
+    status: HTTP.INTERNAL_SERVER_ERROR,
+    detail: 'An unexpected error occurred',
+    trace_id: traceId,
+  })
 }

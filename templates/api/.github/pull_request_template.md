@@ -5,6 +5,7 @@
 ## Quality Checklist (Engineering Handbook)
 
 ### Code
+
 - [ ] JSDoc on all new/modified public methods
 - [ ] Explanatory comments on non-obvious decisions (trade-offs, workarounds, business rules)
 - [ ] Result Pattern (`ok` / `fail`) instead of throw for business errors
@@ -17,6 +18,7 @@
 - [ ] Tests for new logic (services, controllers, utils)
 
 ### Validation
+
 - [ ] `npm run typecheck` passes
 - [ ] `npm run lint` with no new errors
 - [ ] `npm run test` passes
@@ -24,6 +26,7 @@
 - [ ] Test coverage ≥ 80% on new features
 
 ### Security
+
 - [ ] Never log passwords, tokens, national IDs, or card data
 - [ ] Sensitive variables in `.env.local` (not in `.env`)
 - [ ] Protected endpoints validate scope/auth

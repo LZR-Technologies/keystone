@@ -2,8 +2,6 @@
 
 ESLint configuration (shared, flat config, ESLint 9+).
 
-
-
 ## Installation
 
 ```bash
@@ -21,10 +19,7 @@ npm install -D eslint @eslint/js @typescript-eslint/eslint-plugin @typescript-es
 ```js
 import { node } from '@repo/eslint-config'
 
-export default [
-  ...node,
-  { ignores: ['dist/', 'node_modules/', 'coverage/'] },
-]
+export default [...node, { ignores: ['dist/', 'node_modules/', 'coverage/'] }]
 ```
 
 ### Next.js / React project
@@ -34,18 +29,15 @@ export default [
 ```js
 import { react } from '@repo/eslint-config'
 
-export default [
-  ...react,
-  { ignores: ['.next/', 'node_modules/', 'coverage/', 'out/'] },
-]
+export default [...react, { ignores: ['.next/', 'node_modules/', 'coverage/', 'out/'] }]
 ```
 
 ## Available exports
 
-| Export | Stack | What it includes |
-|--------|-------|-------------|
-| `base` | Any TypeScript | Zero `any`, organized imports, naming conventions |
-| `node` | Node.js APIs | Base + `no-magic-numbers` (warning) |
+| Export  | Stack           | What it includes                                              |
+| ------- | --------------- | ------------------------------------------------------------- |
+| `base`  | Any TypeScript  | Zero `any`, organized imports, naming conventions             |
+| `node`  | Node.js APIs    | Base + `no-magic-numbers` (warning)                           |
 | `react` | React / Next.js | Base + JSX rules (`jsx-no-target-blank`, `self-closing-comp`) |
 
 ## History
@@ -53,5 +45,3 @@ export default [
 Originally part of the `your-org/shared-config` monorepo. Split out in 2026 to resolve import resolution issues when installed via `github:` deps.
 
 ## Reference
-
-

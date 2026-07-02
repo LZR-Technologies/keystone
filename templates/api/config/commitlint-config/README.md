@@ -2,8 +2,6 @@
 
 CommitLint configuration — Conventional Commits.
 
-
-
 ## Installation
 
 ```bash
@@ -41,6 +39,5 @@ security: fixes SQL injection
 Originally part of the `your-org/shared-config` monorepo. Split out in 2026 to resolve import resolution issues when installed via `github:` deps.
 
 ## Reference
-
 
 - [Conventional Commits](https://www.conventionalcommits.org/)

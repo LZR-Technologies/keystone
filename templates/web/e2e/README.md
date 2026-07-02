@@ -43,6 +43,7 @@ E2E_USER_PASSWORD=<test user password>
 ```
 
 And configure GitHub Secrets for CI:
+
 ```bash
 gh secret set E2E_USER_EMAIL --repo <owner>/<repo>
 gh secret set E2E_USER_PASSWORD --repo <owner>/<repo>
@@ -55,6 +56,7 @@ mv e2e/fixtures/global-setup.ts.example e2e/fixtures/global-setup.ts
 ```
 
 Edit the file. The `[TODO]` markers show where to adjust:
+
 - `page.goto(...)` — the login route
 - The input selectors (use `getByLabel` if there is an `htmlFor`; `getByPlaceholder` if not)
 - `page.waitForURL(...)` — your app's post-login URL pattern
@@ -105,6 +107,7 @@ pnpm test:e2e --project=critical
 ## In CI
 
 GitHub Actions runs automatically on PRs (`.github/workflows/e2e.yml`):
+
 - Chromium cache (~2min saved per run)
 - Prod build of the app (faster + more realistic than dev)
 - HTML report as an artifact on failure

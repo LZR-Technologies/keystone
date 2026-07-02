@@ -23,7 +23,7 @@ export function ErrorState({
       {onRetry && (
         <button
           onClick={onRetry}
-          className="bg-surface text-text-primary border-border hover:border-border-hi inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors duration-[180ms]"
+          className="text-text-primary inline-flex items-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium transition-colors duration-[180ms] hover:border-border-hi"
           aria-label="Try again"
         >
           <RefreshCcw className="h-4 w-4" aria-hidden="true" />

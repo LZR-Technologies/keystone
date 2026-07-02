@@ -2,8 +2,6 @@
 
 Shared Prettier configuration.
 
-
-
 ## Installation
 
 ```bash
@@ -34,5 +32,3 @@ In your project's `package.json`:
 Originally part of the `your-org/shared-config` monorepo. Split out in 2026 to resolve import resolution issues when installed via `github:` deps.
 
 ## Reference
-
-

@@ -42,17 +42,30 @@
     "prettier": "^3.3.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",
-    "vitest": "^2.1.0"
+    "vitest": "^3.2.6"
   },
   "prettier": "@repo/prettier-config",
   "lint-staged": {
-    "*.{ts,js,mjs,cjs}": ["eslint --fix", "prettier --write"],
-    "*.{json,md,yml,yaml}": ["prettier --write"]
+    "*.{ts,js,mjs,cjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ],
+    "overrides": {
+      "vite": ">=6.4.3",
+      "esbuild": ">=0.28.1",
+      "brace-expansion@>=5.0.0 <5.0.6": ">=5.0.6",
+      "js-yaml@>=4.0.0 <=4.1.1": ">=4.2.0"
+    }
   }
 }

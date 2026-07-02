@@ -2,8 +2,6 @@
 
 TypeScript configurations (shared).
 
-
-
 ## Installation
 
 ```bash
@@ -48,11 +46,11 @@ npm install -D github:your-org/tsconfig
 
 ## Available configs
 
-| Config | Stack | When to use |
-|--------|-------|-------------|
-| `tsconfig.base.json` | Shared base | Do not use directly |
-| `tsconfig.node.json` | Node.js APIs | `extends: "@repo/tsconfig/tsconfig.node.json"` |
-| `tsconfig.next.json` | Next.js App Router | `extends: "@repo/tsconfig/tsconfig.next.json"` |
+| Config                       | Stack               | When to use                                            |
+| ---------------------------- | ------------------- | ------------------------------------------------------ |
+| `tsconfig.base.json`         | Shared base         | Do not use directly                                    |
+| `tsconfig.node.json`         | Node.js APIs        | `extends: "@repo/tsconfig/tsconfig.node.json"`         |
+| `tsconfig.next.json`         | Next.js App Router  | `extends: "@repo/tsconfig/tsconfig.next.json"`         |
 | `tsconfig.react-native.json` | Expo / React Native | `extends: "@repo/tsconfig/tsconfig.react-native.json"` |
 
 ## History
@@ -60,5 +58,3 @@ npm install -D github:your-org/tsconfig
 Originally part of the `your-org/shared-config` monorepo. Split out in 2026 to resolve import resolution issues when installed via `github:` deps.
 
 ## Reference
-
-
