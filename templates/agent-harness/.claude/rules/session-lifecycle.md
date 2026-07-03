@@ -16,6 +16,15 @@ The lifecycle runs on explicit words, so a new user needs to know them up front:
   sequence below. Opening a chat without saying it is just an open window, not a session.
 - **"close session"** (or **"wrap up"**) -- ends the session and runs the close sequence.
 
+**Safeguard on the resume trigger.** "continue" (and "continuar") is an everyday word --
+"continue with that approach", "continue the loop", "let's continue" mid-task all use it
+without meaning "run the resume sequence". So treat it as the resume trigger only when it
+arrives as a **short, standalone message** (the word on its own, or a bare phrase like
+"resume session" / "continue session" -- roughly a handful of words, nothing else asked).
+The moment "continue" sits inside a larger instruction, it is an ordinary word in that
+sentence, not the trigger -- do not kick off the resume sequence. When genuinely unsure,
+ask one short question rather than silently re-running a resume mid-session.
+
 ## On resume -- in this order
 
 1. **Identify the coder.** Read the user name from version control
@@ -34,7 +43,13 @@ The lifecycle runs on explicit words, so a new user needs to know them up front:
    ground gets re-decided every session.
 3. **Locate and read the newest briefing** under
    `knowledge/project-journal/briefings/<coder>/` (newest by the date in the filename).
-   Read it in full, not skimmed.
+   Read it in full, not skimmed. **Check its age first:** if the date in the filename is
+   more than 7 days old, flag it in the resume summary as possibly stale before treating
+   its contents as current truth -- a week-old briefing may describe branches already
+   merged, decisions already reversed, or work someone else has since moved on. Still read
+   it (it is the best hand-off available), but confirm the open items against the codebase
+   survey in step 4 rather than acting on the briefing's word alone, and note the staleness
+   to the user so they can correct anything that has drifted.
 4. **Survey the codebase beyond the briefing -- mandatory, before any action or summary.**
    The briefing describes intent; the repository holds the truth. At minimum:
    - version-control status and recent history: current branch (`git branch
@@ -67,13 +82,16 @@ The lifecycle runs on explicit words, so a new user needs to know them up front:
 
    The open header lives directly in the log until close -- no separate scratch file,
    which would just be a second place for the same state to go stale.
-6. **Delete the absorbed briefing.** Briefings are disposable by design: once absorbed,
-   the useful part is in your working context and the permanent part already lives in
-   the daily log and long-term memory. A pile of stale briefings is noise that a future
-   session will one day mistake for current truth.
-7. **Present a short summary** (3-5 lines: what was open, the briefing's "first question
+6. **Present a short summary** (3-5 lines: what was open, the briefing's "first question
    to ask", the likely paths) and wait for the user's answer before any destructive
    action.
+7. **Delete the absorbed briefing -- only after the summary is presented.** Briefings are
+   disposable by design: once absorbed, the useful part is in your working context and the
+   permanent part already lives in the daily log and long-term memory. A pile of stale
+   briefings is noise that a future session will one day mistake for current truth. The
+   order matters: deleting before the summary throws away the source while you are still
+   drawing on it -- if anything interrupts the run between the two steps, the briefing is
+   gone and un-summarized. Summarize from it first, then delete.
 
 ### Edge cases
 
@@ -109,13 +127,22 @@ The lifecycle runs on explicit words, so a new user needs to know them up front:
    facts (rules, decisions, invariants). Anything that should still be true next month
    goes to memory -- a permanent fact parked only in a briefing dies when the briefing is
    absorbed and deleted.
-4. **Commit the daily log, the new briefing, and any memory changes** on the current
-   working branch (a plain `git add` of the three paths plus a short commit message is
-   enough; this rule does not require a dedicated branch or PR for journal-only
-   changes). The cross-machine coder-identity design in step 1 of the resume sequence
-   only works if this record travels with the repository -- an uncommitted daily log or
-   briefing is invisible to that same coder resuming on a different machine, and to any
-   other coder on the project.
+4. **Commit AND push the daily log, the new briefing, and any memory changes** on the
+   current working branch. `git add` the three paths, commit, then push the working
+   branch to the remote. This rule does not require a dedicated branch or PR for
+   journal-only changes -- the commit rides on whatever working branch is checked out --
+   but it does require the push.
+   - **Commit message format:** the project's commit hook (commitlint) rejects a bare
+     message, so use the conventional `type(scope): subject` shape. For a session-close
+     journal commit that is `chore(journal): close session N` (substitute the real
+     session number). A "short message is enough" in spirit, but it must still carry the
+     type and scope or the commit is rejected at the hook.
+   - **Why push, not just commit:** a commit that never leaves the machine is exactly as
+     invisible to the next machine as an unsaved file. The cross-machine coder-identity
+     design in step 1 of the resume sequence only works if this record actually reaches
+     the remote -- a local-only commit strands the daily log and briefing on one machine,
+     so the same coder resuming elsewhere (and any other coder on the project) sees
+     nothing. Commit writes it down; push is what makes it travel.
 
 ## Context budget -- wind down at roughly 60%
 
@@ -144,6 +171,15 @@ an exact percentage, so use whichever of these is available, in order of prefere
 When in doubt, wind down earlier rather than later -- a hand-off one step early costs a
 little redundancy in the next session's survey; a hand-off one step late risks a
 degraded close sequence, which is the one sequence that most needs a clear head.
+
+**A harder mechanic is possible as a future improvement, not claimed here.** A rough token
+estimate from the transcript size (characters or words seen so far, against a known
+context-window budget) could turn "roughly 60%" into a concrete number even when the
+environment exposes no indicator. That would be a real proxy, not a fake meter -- but it is
+not wired up today, and it is deliberately not a hook: nothing forces the wind-down, since
+whether reasoning has actually degraded is a judgment the agent still makes. Noted so a
+later version can add the estimate honestly rather than pretending this self-check is
+already precise.
 
 ## During the session
 

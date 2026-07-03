@@ -78,16 +78,34 @@ lives in the B2 workflow (the point-by-point check against the done-target), not
 that would give false confidence. Being honest about which guarantees are hard and which
 are judgment is itself part of the standard.
 
+**Which tools the hooks watch.** The hooks fire on a `PreToolUse` matcher of
+`Bash|PowerShell`, so they cover both shells the agent can run commands through: the Bash
+tool and -- on Windows, where it is the default -- the PowerShell tool. Both deliver the
+command string at `tool_input.command`, which is what the hooks read. Covering PowerShell
+matters concretely: its default reader is `Get-Content` (not `cat`), and a push refspec
+like `git push origin HEAD:main` is just as reachable from PowerShell as from Bash --
+without the PowerShell arm of the matcher, those would bypass the rails entirely on a
+Windows machine. One honest caveat on the tool name: the matcher's alternation syntax is
+documented, but the exact string `PowerShell` for the tool name is confirmed empirically
+(it is the tool-name key Claude Code uses in its own permission entries), not from a
+published list of tool names -- if a future version renames that tool, this arm would
+need updating.
+
 **Honest limits of these two hooks specifically.** Both are pattern matches against the
-literal shell command the agent is about to run, so both have known holes: `block-secret`
+literal shell command the agent is about to run, so both have known holes. `block-secret`
 matches a command that names `.env` explicitly, so a broad `git add -A` or `git add .`
 that happens to sweep up an untracked `.env` file is not caught by name -- nothing in the
-command text says `.env`. `block-protected-branch` matches `git commit` and `git push`,
-so a `git merge <branch> && git push` sequence lands the merge before the push is even
-inspected, and a merge performed through a different tool than the shell is invisible to
-it entirely. These are **conveniences that catch the common, careless case** -- typing
-`cat .env`, committing straight onto `main` -- not an exhaustive guarantee against a
-determined or unusual command shape. Treat them as a second net, not the primary one.
+command text says `.env`; it also matches the known readers by name (`cat`, `less`,
+`more`, `head`, `tail`, `type`, and the PowerShell `Get-Content`/`gc`), so a reader
+outside that list slips through. `block-protected-branch` matches `git commit` and
+`git push` -- including a push whose refspec targets a protected branch from another
+branch (`git push origin HEAD:main`) -- but a `git merge <branch> && git push` sequence
+lands the merge before the push is even inspected, and a merge performed through a
+different tool than the shell is invisible to it entirely. These are **conveniences that
+catch the common, careless case** -- typing `cat .env` or `Get-Content .env`, committing
+straight onto `main`, pushing onto `main` from a side branch -- not an exhaustive
+guarantee against a determined or unusual command shape. Treat them as a second net, not
+the primary one.
 
 The primary net for protecting humans is unchanged by anything an agent's hooks can do:
 the project's own pre-commit hooks (running on every contributor's machine, agent or
@@ -115,14 +133,18 @@ fixed sequence around each (rule: `.claude/rules/session-lifecycle.md`).
   actual codebase beyond the briefing (version-control state, README, structure, every
   file the briefing mentions) before acting; open a timed, numbered entry in the
   coder's daily log, getting the real wall-clock time from a date/time command rather
-  than leaving it blank; then delete the absorbed briefing -- briefings are disposable
-  by design. A session found still open from earlier the same day (the common
+  than leaving it blank; present the resume summary, and only then delete the absorbed
+  briefing -- summarize from it before discarding it, never the reverse. A briefing more
+  than 7 days old is flagged as possibly stale and confirmed against the survey rather
+  than trusted outright. A session found still open from earlier the same day (the common
   crash-or-restart case) is closed first, marked as recovered, before a new one opens.
 - **On close:** write the next briefing from the embedded template; stamp end time and
   total duration in the daily log with a summary of what was done and what is open;
-  move durable decisions into long-term memory (B6); and commit the daily log, the
-  briefing, and any memory changes so they travel with the repository to the next
-  machine or coder.
+  move durable decisions into long-term memory (B6); and commit **and push** the daily
+  log, the briefing, and any memory changes on the working branch (a conventional commit
+  such as `chore(journal): close session N`) so they travel with the repository to the
+  next machine or coder -- a local-only commit never leaves the machine and so hands off
+  nothing.
 - **Context budget:** at roughly 60% of the context window, wind down -- finish the
   current step, close, and hand off. Reasoning degrades as the window fills; a clean
   hand-off beats a degraded marathon. No tool here reports an exact percentage, so this

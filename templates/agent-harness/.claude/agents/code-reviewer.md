@@ -34,7 +34,7 @@ evidence in the code, never by a claim.
    "user not found" vs "wrong password").
 5. **Reasonable performance.** No query inside a loop, no loading far more than is used,
    no needless complexity on the hot path.
-6. **Reviewable delivery.** Small, focused change with one goal. The description explains
+6. **Reviewable change.** Small, focused change with one goal. The description explains
    the *why*, not only the *what*.
 7. **Knowing what NOT to do.** Don't reinvent what the library already gives. Don't add a
    dependency lightly. Don't optimize what nobody asked for.

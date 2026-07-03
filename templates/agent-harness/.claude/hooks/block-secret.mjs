@@ -19,7 +19,15 @@ try {
 
 // Patterns kept as fragments so this file never trips a secret/dangerous scan of itself.
 const stagesEnv = new RegExp('git\\s+(?:add|commit)\\b[^\\n]*\\.env')
-const readsEnv = new RegExp('\\b(?:cat|less|more|head|tail|type)\\b[^\\n]*\\.env')
+// Readers cover both shell (cat|less|more|head|tail|type) and PowerShell -- on Windows the
+// default reader is Get-Content (aliases gc, and cat/type map to it too). Without the
+// PowerShell names a plain `Get-Content .env` slipped through and exposed the secret.
+// `Get-Content` is matched case-insensitively (PowerShell is case-insensitive) and `gc` is
+// bounded by word boundaries so it never fires inside an unrelated token.
+const readsEnv = new RegExp(
+  '(?:\\b(?:cat|less|more|head|tail|type|gc)\\b|Get-Content)[^\\n]*\\.env',
+  'i',
+)
 
 if (stagesEnv.test(command) || readsEnv.test(command)) {
   console.error(

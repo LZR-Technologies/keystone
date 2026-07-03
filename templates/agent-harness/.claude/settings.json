@@ -21,7 +21,8 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "//": "Matcher covers both shells. On Windows the agent runs commands through the PowerShell tool, not Bash -- without it here, a `Get-Content .env` or `git push origin HEAD:main` typed into PowerShell would never reach these guardrails. The pipe is the matcher's documented alternation syntax, and both tools deliver the command at tool_input.command, which both hooks read.",
+        "matcher": "Bash|PowerShell",
         "hooks": [
           { "type": "command", "command": "node .claude/hooks/block-secret.mjs" },
           { "type": "command", "command": "node .claude/hooks/block-protected-branch.mjs" }
