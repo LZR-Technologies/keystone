@@ -56,7 +56,7 @@ The command:
 2. **Renames the package** — changes only the `name` in `package.json` to the project name.
 3. **Writes a record** (`keystone.json`) noting the template used, the answers, and the deductions.
 4. **Deduces two settings** (database needed?, security level) and stores them in that record.
-5. **Starts version control** — `git init -b main` (the official branch is pinned, never the
+5. **Starts version control** — `git init -b main` (the protected branch is pinned, never the
    machine default), stages the files, makes a first scoped conventional commit on `main`, then
    creates and checks out `develop` — because `main` is protected by the template's own guards,
    daily work belongs on the integration level, and without this the developer's next commit would
@@ -70,8 +70,8 @@ Beyond that, in particular:
 - **Remote repository.** _Planned / by design left to the owner._ The command initializes git
   locally and commits, but does **not** create a remote repository or push anywhere — and it never
   creates a third-party account. The "where to version" answer is recorded for that later step.
-- **Three version levels** (official / staging / working), the review gate, and the protection
-  rules on the official branch. _Planned._ These are the standard the scaffold aims for — not built.
+- **Three version levels** (trunk / staging / working), the review gate, and the protection
+  rules on the protected branch. _Planned._ These are the standard the scaffold aims for — not built.
 - **Standard organization** — the task board and session hand-off (close a session / resume it, plus
   a daily log and a hand-off record). _Planned._ None of these run today, and the folders that would
   hold them are not created as working behavior.

@@ -39,6 +39,17 @@ test('runChecks: database without the conventions fails', () => {
   assert.match(db?.detail ?? '', /missing/)
 })
 
+test('runChecks + formatReport: a project with no database is not-applicable, not a green pass', () => {
+  const results = runChecks(snapshot({ paths: ['src/app.ts'], files: [] }))
+  const db = results.find((r) => r.pillar === 'Database')
+  // Marked not-applicable so the report can show it neutrally.
+  assert.equal(db?.notApplicable, true)
+  const out = formatReport(results)
+  // The database line uses the neutral dash and states "not applicable" — never a green ✓.
+  assert.match(out, /– \[Database\].*not applicable/)
+  assert.doesNotMatch(out, /✓ \[Database\]/)
+})
+
 test('formatReport: shows the three parts and orders by severity', () => {
   const results = runChecks(snapshot({ paths: ['src/app.ts'] }))
   const out = formatReport(results)

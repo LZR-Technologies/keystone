@@ -62,8 +62,14 @@ async function runNew(args: string[]): Promise<void> {
     const { projectDir, template, deduced } = await createProject(answers)
     print(`\n✓ Project created at ${projectDir}`)
     print(`  From the ${template} template`)
-    print(`  Database: ${deduced.needsDatabase ? 'yes (deduced)' : 'not needed'}`)
-    print(`  Security: ${deduced.securityLevel}`)
+    // Be honest about what these lines mean: they are RECORDED intents in keystone.json, read
+    // by a later step — not something already provisioned here. Saying "Security: reinforced"
+    // plainly would imply hardening was applied; it was not. The wording below states that the
+    // choice was noted, so the user is never misled into thinking a control is already in place.
+    print(`  Database (recorded): ${deduced.needsDatabase ? 'needed' : 'not needed'}`)
+    print(
+      `  Security level (recorded): ${deduced.securityLevel} — noted in keystone.json for later`,
+    )
     // Flags only ever turn a step off; both steps are on by default so the project
     // is born versioned, installed, and with its hooks live.
     const options = {

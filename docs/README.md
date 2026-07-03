@@ -54,7 +54,7 @@ where a rule describes something not yet wired in, the document says so inline.
 - **[code-quality.md](code-quality.md)** — Code quality: auto-formatting, blocking on any error or
   warning, oversized-file flags, comments that explain the _why_.
 - **[database.md](database.md)** — Database: timestamps on everything, soft delete, versioned and
-  repeatable migrations, unguessable identifiers.
+  repeatable migrations, non-sequential identifiers (UUIDs).
 - **[tests.md](tests.md)** — Tests: ships with each feature, covering the happy path and the failures,
   a failing test blocking a ship.
 - **[workflow.md](workflow.md)** — Workflow: three branch levels, a review gate, a task board, and

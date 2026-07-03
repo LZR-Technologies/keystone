@@ -5,12 +5,12 @@ control. Nothing lands unreviewed, and the automated guards filter most issues b
 
 ## How a contribution flows
 
-1. Work on a **separate branch** — never on the official one.
+1. Work on a **separate branch** — never on the protected one.
 2. Run the checks **locally** before proposing:
    - `node --test tests/*.test.ts` — every test must pass.
    - `node src/index.ts check .` — the guards and the project's own gates (format, lint, types,
      dependency audit) must be clean.
-3. Open a **proposal** (pull request). The same checks run again on the way in.
+3. Open a **pull request**. The same checks run again on the way in.
 4. A **maintainer reviews** and has the final say: approve, request changes, or decline.
 
 ## Principles the code follows
@@ -23,4 +23,4 @@ control. Nothing lands unreviewed, and the automated guards filter most issues b
 
 The full design — the 8 pillars, the core rationale, the end-to-end flow — is in [docs/](docs/).
 
-Every delivery records its author.
+Every change is attributed to its author.

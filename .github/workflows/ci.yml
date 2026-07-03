@@ -1,0 +1,43 @@
+# Keystone's own CI — the cobbler wears shoes. On every push and PR, the tool builds and
+# then runs its OWN gate on itself (`check .`), so a defect that makes the check fail is
+# caught in CI instead of shipping. This mirrors exactly what the tool asks of the projects
+# it generates.
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+# Cancel an in-progress run when a new commit is pushed to the same ref — no point spending
+# minutes on a revision that is already superseded.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 24: running the TypeScript sources directly (which `npm test` does via
+      # `node --test tests/*.test.ts`) needs Node 24, matching the repo requirement in README.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # `npm ci` for a reproducible install from the committed lockfile.
+      - name: Install dependencies
+        run: npm ci
+
+      # Compile src/ -> dist/, the JavaScript the published package ships.
+      - name: Build
+        run: npm run build
+
+      # Run Keystone's full gate on its own repository: the text guards plus the project's
+      # own tooling (format, lint, types, tests, dependency audit). Runs the built CLI, so
+      # this is the exact entry point a user installs. A non-zero exit fails the job.
+      - name: Keystone checks itself
+        run: node dist/index.js check .

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { deduce, createProject, copyFilterFor } from '../src/create.ts'
+import { deduce, createProject, copyFilterFor, assertValidProjectName } from '../src/create.ts'
 import type { KeystoneAnswers, ProjectType } from '../src/types.ts'
 
 function answers(type: ProjectType, sensitive: boolean, parentDir = '.'): KeystoneAnswers {
@@ -58,6 +58,11 @@ test('createProject: a service is born from the real api template, renamed', asy
     assert.equal(record.template, 'api')
     assert.equal(record.deduced.securityLevel, 'reinforced')
 
+    // the recorded keystoneVersion is read from the tool's own package.json, not hardcoded —
+    // so it stays in sync with the real version on every bump.
+    const toolPkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'))
+    assert.equal(record.keystoneVersion, toolPkg.version)
+
     // the .gitignore is restored (templates ship it as `gitignore` because npm strips
     // the dotted name from a package; without the restore the project could not commit).
     assert.ok((await stat(join(projectDir, '.gitignore'))).isFile(), 'expected .gitignore restored')
@@ -97,6 +102,29 @@ test('createProject: a site is born from the web template', async () => {
 
 test('createProject: mobile has no template yet', async () => {
   await assert.rejects(() => createProject(answers('mobile', false, '.')), /No template yet/)
+})
+
+test('createProject: rejects an invalid project name before touching the filesystem', async () => {
+  // A name with a space + uppercase would produce an invalid npm manifest. createProject must
+  // refuse it up front (parentDir '.' is never written to, proving no folder was created).
+  const bad = answers('service', false, '.')
+  bad.product.name = 'My App'
+  await assert.rejects(() => createProject(bad), /Invalid project name/)
+})
+
+test('assertValidProjectName: accepts valid names and rejects invalid ones', () => {
+  // Valid npm package names pass without throwing.
+  for (const good of ['my-app', 'shop', 'api.v2', 'a_b', 'x1']) {
+    assert.doesNotThrow(() => assertValidProjectName(good), `expected "${good}" to be valid`)
+  }
+  // Invalid names (space, uppercase, leading dot) are rejected with a clear message.
+  for (const bad of ['My App', 'UPPER', '.hidden', 'has space', '']) {
+    assert.throws(
+      () => assertValidProjectName(bad),
+      /Invalid project name/,
+      `expected "${bad}" invalid`,
+    )
+  }
 })
 
 test('copyFilterFor: keeps template files even when the template lives under node_modules', () => {

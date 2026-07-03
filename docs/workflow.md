@@ -17,22 +17,22 @@ community without turning into chaos.
 
 ## 1. Three levels — _built (the isolated-workspace refinement remains planned)_
 
-- Three lines: **official** (`main` — what is live / done), **staging** (`develop` — what is being
-  integrated), and **daily work** (each person's active branch). The official line is never edited
+- Three lines: **trunk** (`main` — what is live / done), **staging** (`develop` — what is being
+  integrated), and **daily work** (each person's active branch). The main line is never edited
   directly.
-- 🔧 What ships today: `new` pins the official branch (`git init -b main`), records the baseline
+- 🔧 What ships today: `new` pins the protected branch (`git init -b main`), records the baseline
   commit there, and leaves the developer on `develop`; the template's git hooks refuse a direct
   commit or push to a protected branch (for humans, not only for the agent); and a bundled script
-  configures the official branch's protection on the hosting service (required review + required
+  configures the protected branch's protection on the hosting service (required review + required
   checks).
 - _Planned:_ each independent line of work getting its own isolated workspace.
 
-## 2. Review gate before the official branch (planned)
+## 2. Review gate before the protected branch (planned)
 
-- The standard is that every change would pass a **review** before entering the official line — the
+- The standard is that every change would pass a **review** before entering the main line — the
   gate existing even for a solo developer, with the automatic checks reviewing alongside it.
 - This gate is not yet built. When it exists, the aim is that only what passes the checks and the
-  review reaches the official line. Community proposals are meant to run through the same kind of
+  review reaches the main line. Community pull requests are meant to run through the same kind of
   filter — see the contribution flow in [README.md](README.md) — but that intake is likewise part of
   the planned design, not something that receives contributions today.
 
@@ -57,15 +57,15 @@ community without turning into chaos.
 - Enforcement tier is declared honestly: a rule the agent follows, not a hard hook — see
   [pillars.md](pillars.md), B5.
 
-## 5. Author on every delivery (planned)
+## 5. Author on every change (planned)
 
-- The standard is for every delivery to record **who did it** (a person or an AI agent), since several
+- The standard is for every change to record **who did it** (a person or an AI agent), since several
   contributors may work on the same project. It is meant to tie into the database audit trail. This
   authorship recording is part of the planned design, not a built behavior.
 
-## 6. Tests on every delivery (planned)
+## 6. Tests on every change (planned)
 
-- The design is for the check suite to run on every delivery, with the suite growing over time. See
+- The design is for the check suite to run on every change, with the suite growing over time. See
   [tests.md](tests.md).
 - 🔧 The automatic checks (code quality + tests) exist and can run today; wiring them into a review
-  gate on every delivery is the planned part.
+  gate on every change is the planned part.

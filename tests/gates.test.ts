@@ -48,6 +48,39 @@ test('runProjectGates: a fully configured project runs every gate through its ma
   }
 })
 
+test('runProjectGates: the tests gate prefers test:coverage when the project defines it', async () => {
+  // A project with both scripts must run coverage — plain "test" would pass even when the
+  // coverage threshold is violated, handing a green seal to under-tested code.
+  const dir = await projectWith({ test: 'vitest run', 'test:coverage': 'vitest run --coverage' })
+  const runner = new RecordingRunner()
+  try {
+    await runProjectGates(dir, runner)
+    const testCall = runner.calls.find((c) => c.args.includes('test:coverage'))
+    assert.ok(testCall, 'expected the tests gate to run test:coverage')
+    assert.equal(
+      runner.calls.some((c) => c.args.length === 2 && c.args[1] === 'test'),
+      false,
+      'plain "test" must not be run when test:coverage exists',
+    )
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('runProjectGates: the tests gate falls back to test when there is no coverage script', async () => {
+  const dir = await projectWith({ test: 'vitest run' })
+  const runner = new RecordingRunner()
+  try {
+    await runProjectGates(dir, runner)
+    assert.ok(
+      runner.calls.some((c) => c.args.join(' ') === 'run test'),
+      'expected the tests gate to fall back to "run test"',
+    )
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
 test('runProjectGates: a missing script is skipped, not failed', async () => {
   // Only a test script; no format:check/lint/typecheck.
   const dir = await projectWith({ test: 'vitest run' })

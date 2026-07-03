@@ -45,6 +45,14 @@
   ],
   "author": "Paulo de Lucca",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Plucca7/keystone.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Plucca7/keystone/issues"
+  },
+  "homepage": "https://github.com/Plucca7/keystone#readme",
   "devDependencies": {
     "@eslint/js": "^9.10.0",
     "@types/node": "^20.11.0",

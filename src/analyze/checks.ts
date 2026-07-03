@@ -17,6 +17,13 @@ export interface CheckResult {
   pillar: string
   title: string
   passed: boolean
+  /**
+   * True when the check does not apply to this project (e.g. no database present), so the
+   * report can show a neutral "not applicable" instead of a green ✓. A not-applicable check
+   * is not counted as a real pass — displaying it as an approval would overstate what was
+   * actually verified. See docs/analyze.md.
+   */
+  notApplicable?: boolean
   severity: Severity
   effort: Effort
   risk: Risk
@@ -91,10 +98,15 @@ const checkReadme: Check = (s) => {
 const checkDatabaseConventions: Check = (s) => {
   const sqlFiles = s.files.filter((f) => f.path.endsWith('.sql'))
   if (sqlFiles.length === 0) {
+    // No database to check. Mark this not-applicable rather than a pass: a project with no
+    // SQL was never verified against the data conventions, so showing a green ✓ would imply
+    // an approval that never happened. passed stays true only so it is not listed as a
+    // FAILURE in the upgrade plan; notApplicable drives the neutral display.
     return {
       pillar: 'Database',
       title: 'Database conventions',
       passed: true,
+      notApplicable: true,
       severity: 'low',
       effort: 'small',
       risk: 'low',

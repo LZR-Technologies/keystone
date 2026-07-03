@@ -52,5 +52,5 @@ at zero cost.
 ## References
 
 Established testing guides. The **planned** automatic suite runner would grow the net with every
-delivery. Today `check` runs the project's `test` script as a blocking gate; `analyze`'s presence
+change. Today `check` runs the project's `test` script as a blocking gate; `analyze`'s presence
 check, separately, only reports whether the project has any test files.

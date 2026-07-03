@@ -22,9 +22,9 @@
 **Security in code, not in a paid agent:** the aim is for it to run on its own, at zero cost, with no
 dependency on a paid AI service. Two fronts, weighted differently:
 
-- **Inner lock** (the core) — squarely the application's own responsibility, and where mistakes most
+- **Application-layer security** (the core) — squarely the application's own responsibility, and where mistakes most
   often occur.
-- **Wall and gate** (the edge) — hold back abuse. This is the standard the scaffold aims for; the
+- **Edge protection** (the perimeter) — hold back abuse. This is the standard the scaffold aims for; the
   edge protection is planned, not wired up as active enforcement today.
 
 When AI enters the picture (deeper vulnerability hunting), the intent is for it to be the assistant the
@@ -44,7 +44,7 @@ developer already uses — optional and off by default. That deeper hunt is plan
 
 ---
 
-## Front 1 — the inner lock (essential)
+## Front 1 — application-layer security (the core, essential)
 
 ### 1.1 Each customer sees only their own
 
@@ -116,7 +116,7 @@ The single most important rule in any multi-tenant system.
 
 ---
 
-## Front 2 — the wall and gate (edge)
+## Front 2 — edge protection (the perimeter)
 
 _Planned, not built._ This is the edge standard the scaffold aims for; none of it runs as active
 enforcement today.

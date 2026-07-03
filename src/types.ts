@@ -1,5 +1,5 @@
 // The answers Keystone collects before creating a project.
-// Only "type 3" decisions (the user's taste) live here; what the skill deduces
+// Only "type 3" decisions (the user's taste) live here; what Keystone deduces
 // (need for a database, security level, visual foundation) is derived later,
 // never asked. See docs/setup-wizard.md.
 

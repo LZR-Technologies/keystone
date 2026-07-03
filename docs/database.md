@@ -26,7 +26,7 @@ changes are always recorded; nothing is truly lost.
 ## 2. Delete means hide, not disappear
 
 - When something is "deleted", it **leaves the view but stays stored** — it can be recovered and
-  audited. This is reversible deletion.
+  audited. This is soft delete.
 - It protects against human error and fraud. (A true, permanent delete is a rare and deliberate
   exception.)
 
@@ -36,16 +36,16 @@ changes are always recorded; nothing is truly lost.
   (migrations), identical across every environment. Nobody edits the database directly.
 - These run through the database service's own tooling — **no AI, zero cost**.
 
-## 4. Unguessable identifiers
+## 4. Non-sequential identifiers (UUIDs)
 
-- Each record has an **unguessable identifier** (not a sequential 1, 2, 3). Nobody can count how many
+- Each record has a **non-sequential identifier (UUID)** (not a sequential 1, 2, 3). Nobody can count how many
   records exist or probe the data by walking the numbers.
 
 ## 5. Every record carries the tenant id
 
 - Every record carries the **owning tenant's id**, and that separation is enforced in the database.
   This is tenant isolation.
-- It is the foundation of the Security pillar's "inner lock" — see [security.md](security.md),
+- It is the foundation of the Security pillar's application-layer security (the core) — see [security.md](security.md),
   item 1.1.
 - **Planned:** an automatic check that flags a query that runs without the tenant filter. This check
   is a target and is **not built yet** — it does not run today.

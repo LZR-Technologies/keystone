@@ -62,7 +62,21 @@ const GATES: GateSpec[] = [
   scriptGate('formatting', 'Code quality', 'format:check'),
   scriptGate('lint (errors & warnings)', 'Code quality', 'lint'),
   scriptGate('types', 'Code quality', 'typecheck'),
-  scriptGate('tests', 'Tests', 'test'),
+  {
+    // Prefer "test:coverage" over "test" when the project defines it. Running plain "test"
+    // gives a green seal to a project whose coverage threshold is violated — the coverage
+    // script is the one that actually enforces the tests pillar (docs/tests.md item 3). Fall
+    // back to "test" when there is no coverage script, and skip only when neither exists.
+    name: 'tests',
+    pillar: 'Tests',
+    plan({ scripts, pm }) {
+      const script = scripts['test:coverage'] ? 'test:coverage' : scripts['test'] ? 'test' : null
+      if (!script) {
+        return { skip: 'no "test" or "test:coverage" script in package.json' }
+      }
+      return { run: { command: pm, args: ['run', script] } }
+    },
+  },
   {
     // Not a project script — the package manager's own audit of the dependency list.
     name: 'dependency audit',

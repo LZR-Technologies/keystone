@@ -54,7 +54,9 @@ export const scanDangerous: Guard = (file, content) => {
           guard: 'dangerous',
           file,
           line: index + 1,
-          message: `Dangerous pattern — ${name} (injection/XSS risk); review before shipping`,
+          // Point at the security pillar doc so the block names the rule it enforces, not
+          // just the symptom — the "speaking watchdog" house rule.
+          message: `Dangerous pattern — ${name} (injection/XSS risk); review before shipping — see docs/security.md`,
         })
       }
     }

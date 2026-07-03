@@ -95,9 +95,9 @@ _Target — not yet enforced. `analyze` today does only basic text checks over `
 string matching) 🔧; none of the guarantees below are implemented._
 
 - Automatic created/updated timestamps on every record.
-- Delete = hide and stay recoverable (nothing truly disappears) — reversible deletion.
+- Delete = hide and stay recoverable (nothing truly disappears) — soft delete.
 - Every structural change through recorded, repeatable steps; nobody edits directly.
-- Unguessable, non-sequential identifiers (never 1, 2, 3).
+- Non-sequential identifiers (UUIDs) (never 1, 2, 3).
 - Internal names always in English. Every record carries the tenant id (tenant isolation) — see
   Pillar 7. (No tenant-isolation query check is built; this is the target.)
 
@@ -118,14 +118,14 @@ fails 🔧. Wiring that block into a before-going-live/CI gate remains the targe
 _Partially built. The three branch levels and the session hand-off ship today (see below); the
 review gate and the task-board automation remain the target._
 
-- 🔧 Three levels: official (`main`) → staging (`develop`) → daily work, with the official branch
+- 🔧 Three levels: trunk (`main`) → staging (`develop`) → daily work, with the main branch
   protected by the project's git hooks and a bundled protection-setup script. Shipped.
-- Every change passes a review gate before entering the official branch — **planned**.
+- Every change passes a review gate before entering the protected branch — **planned**.
 - A task board (to do / doing / done) — an opt-in, documented manual setup, not a shipped wired
   board (see [workflow.md](workflow.md)).
 - 🔧 Session hand-off: close a work session and resume it later without re-explaining context, so
   context survives from one session to the next — shipped as a Layer B rule (B5).
-- Every delivery records its author (person or AI agent) — carried by the work-tracking rule (B7).
+- Every change records its author (person or AI agent) — carried by the work-tracking rule (B7).
 
 ### 6. Ship it
 
@@ -160,11 +160,11 @@ dangerous-pattern scan in `check` 🔧 (injection/XSS vectors). Everything else 
   stays off by default. Today only the secret scan is deterministic and running; the deeper hunting
   is planned.
 - **Two fronts, different weights:**
-  - _Inner lock_ (the core) — each customer sees only their own, firm login, correct permissions,
+  - _Application-layer security_ (the core) — each customer sees only their own, firm login, correct permissions,
     never trust incoming input, secrets kept. This is where mistakes most often occur, and it is
     squarely the application's own responsibility to get right. (Design goal; not yet checked
     automatically beyond the secret scan.)
-  - _Wall and gate_ (the smaller front) — block abuse / excess access at the edge. **Planned**; no
+  - _Edge protection_ (the smaller front) — block abuse / excess access at the edge. **Planned**; no
     edge/abuse/rate-limit protection is wired up today.
 - **Closed decisions (design intent):**
   - Essential from day one; reinforced as the project grows.
@@ -293,8 +293,8 @@ Every unit of work is traceable. Rule: `.claude/rules/work-tracking.md`.
 _This section describes the intended design; most of the mechanisms it references are still the
 target._
 
-- _Tenant isolation_ (Security) is meant to live in the _Database_ pillar (tenant id + unguessable
-  identifiers).
+- _Tenant isolation_ (Security) is meant to live in the _Database_ pillar (tenant id + non-sequential
+  identifiers (UUIDs)).
 - The _"always blocks"_ of _Code quality_ is meant to be enforceable because of _Tests_.
 - The _"ships itself"_ of _Ship it_ is meant to be safe only because of the _Code quality_ and
   _Tests_ gates.
@@ -329,18 +329,18 @@ _These are reference standards and tools the Security pillar is designed around.
 exposed-secret scan, none is integrated into Keystone's commands today — they mark the direction, not
 the current implementation._
 
-"Inner lock" front — guides for what must exist:
+Application-layer security front — guides for what must exist:
 
 - OWASP ASVS — application security verification standard (base #1)
 - OWASP Cheat Sheet Series — how to do each thing the secure way
 - OWASP Web Security Testing Guide — how to test security
 
-"Inner lock" front — find the flaw automatically (no AI) — **planned integrations, not built:**
+Application-layer security front — find the flaw automatically (no AI) — **planned integrations, not built:**
 
 - Semgrep — automatically flags dangerous patterns in your code
 - OWASP Dependency-Check — warns when a third-party piece has a known flaw
 
-"Wall and gate" front — **planned, not built:**
+Edge protection front — **planned, not built:**
 
 - express-rate-limit — a mature reference for blocking excess access
 

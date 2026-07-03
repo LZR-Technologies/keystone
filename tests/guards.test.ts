@@ -70,7 +70,7 @@ test('scanDangerous: flags a shell command built with interpolation', () => {
 test('scanDangerous: no false positive on a database driver .exec() method call', () => {
   // Every database driver exposes .exec/.query with template literals (e.g. the
   // tenant-isolation integration tests) — a METHOD call is not a shell command.
-  const dbCall = 'await db.' + 'exec(`set role ${APP_ROLE};`)'
+  const dbCall = 'await db.exec' + '(`set role ${APP_ROLE};`)'
   assert.deepEqual(scanDangerous('a.ts', dbCall), [])
 })
 

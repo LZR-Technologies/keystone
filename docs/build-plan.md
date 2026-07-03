@@ -47,8 +47,8 @@ second net. See [code-quality.md](code-quality.md), [security.md](security.md), 
 
 ### Stage 4 — The pillars realized in the template — planned
 
-Aims to bring the remaining pillars into the template: the database (timestamps, reversible deletion,
-unguessable identifiers, tenant isolation), the three version-control levels, the task board, session
+Aims to bring the remaining pillars into the template: the database (timestamps, soft delete,
+non-sequential identifiers (UUIDs), tenant isolation), the three version-control levels, the task board, session
 hand-off, and the delivery pipeline (with a staging rehearsal and fast rollback). These are design
 targets for the scaffold, not yet built. See [database.md](database.md), [workflow.md](workflow.md),
 [ship-it.md](ship-it.md).

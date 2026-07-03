@@ -4,6 +4,7 @@
 // See docs/setup-wizard.md.
 
 import type { Prompter } from './prompter.ts'
+import { assertValidProjectName, TEMPLATE_EXISTS_FOR } from './create.ts'
 import type {
   KeystoneAnswers,
   ProjectType,
@@ -16,6 +17,11 @@ import type {
 export async function runWizard(prompter: Prompter, presetName?: string): Promise<KeystoneAnswers> {
   // Round A — product briefing
   const name = presetName ?? (await prompter.text('What is the project called?'))
+  // Validate the name the moment we have it, before asking the remaining questions: a bad
+  // name (space, uppercase) is a dead end, so surfacing it now spares the user the whole
+  // questionnaire only to be rejected at creation time. createProject re-checks as the real
+  // guard; this is the early, friendly failure. See docs/setup-wizard.md.
+  assertValidProjectName(name)
 
   const type = await prompter.choice<ProjectType>('What kind of project is it?', [
     { value: 'site', label: 'Site / page (brochure, landing)' },
@@ -23,6 +29,15 @@ export async function runWizard(prompter: Prompter, presetName?: string): Promis
     { value: 'service', label: 'Service that talks to other systems (an entry point)' },
     { value: 'mobile', label: 'Mobile app' },
   ])
+  // Fail fast on a type with no template yet (mobile): warn the moment it is chosen, not
+  // after the user answers seven more questions only to hit "No template yet" at the end.
+  // createProject enforces this too — this is the early, respectful stop.
+  if (!TEMPLATE_EXISTS_FOR(type)) {
+    throw new Error(
+      `Keystone has no template for a "${type}" project yet — only site, system, and service. ` +
+        `Stopping now so you don't answer the rest of the briefing for nothing.`,
+    )
+  }
 
   const language = await prompter.choice<string>('Starting language?', [
     { value: 'pt', label: 'Portuguese' },
