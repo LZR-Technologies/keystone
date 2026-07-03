@@ -72,6 +72,8 @@ export async function runWizard(prompter: Prompter, presetName?: string): Promis
   // single-owner database. This is the "ask, don't impose" principle: the template must not
   // presume every project is a multi-client SaaS.
   let multiTenant: boolean | undefined
+  let superAdmin: boolean | undefined
+  let auditLog: boolean | undefined
   if (type === 'system' || type === 'service') {
     multiTenant = await prompter.choice<boolean>(
       'Does it serve multiple separate clients, each seeing only their own data?',
@@ -80,6 +82,26 @@ export async function runWizard(prompter: Prompter, presetName?: string): Promis
         { value: false, label: 'No — one owner or internal use (single-tenant)' },
       ],
     )
+
+    // Both super-admin and the audit log are asked, not assumed, and only inside the
+    // multi-tenant path where they make sense — a single-owner project has no other tenants to
+    // administer and rarely needs a tamper-proof cross-tenant log. Neither is imposed.
+    if (multiTenant) {
+      superAdmin = await prompter.choice<boolean>(
+        'Include a super-admin that can see across all clients (for support/administration)?',
+        [
+          { value: true, label: 'Yes — add a cross-tenant super-admin role' },
+          { value: false, label: 'No — every session is scoped to one client' },
+        ],
+      )
+      auditLog = await prompter.choice<boolean>(
+        'Include a permanent, tamper-proof record of who changed what (audit log)?',
+        [
+          { value: true, label: 'Yes — add an append-only audit log' },
+          { value: false, label: 'No — no audit log' },
+        ],
+      )
+    }
   }
 
   // Round B — technical setup
@@ -99,7 +121,7 @@ export async function runWizard(prompter: Prompter, presetName?: string): Promis
   )
 
   return {
-    product: { name, type, language, screen, look, sensitive, multiTenant },
+    product: { name, type, language, screen, look, sensitive, multiTenant, superAdmin, auditLog },
     setup: { versionTarget, isPrivate, parentDir },
   }
 }

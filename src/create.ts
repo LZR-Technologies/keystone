@@ -157,54 +157,89 @@ async function assertEmptyDestination(projectDir: string): Promise<void> {
   }
 }
 
-// Where the tenancy variant and the tenant-isolation test live inside each template. The
-// multi-tenant schema is the template's active migration; the single-tenant variant sits
-// beside it as a build input (db/single-tenant.schema.sql) that never ships to the project.
+// The multi-tenant schema is the template's active migration (0001); the single-tenant variant
+// sits beside it as a build input (db/single-tenant.schema.sql) that never ships to the project.
 const ACTIVE_SCHEMA = join('db', 'migrations', '0001_initial_schema.sql')
 const SINGLE_TENANT_VARIANT = join('db', 'single-tenant.schema.sql')
-const ISOLATION_TEST_BY_TEMPLATE: Record<'web' | 'api', string> = {
-  web: join('src', '__tests__', 'integration', 'tenant-isolation.test.ts'),
-  api: join('tests', 'integration', 'tenant-isolation.test.ts'),
+
+// The integration-test folder differs by template (web nests it under src/, api keeps it at the
+// root); the isolation test and the optional-feature tests all live directly inside it.
+const INTEGRATION_DIR_BY_TEMPLATE: Record<'web' | 'api', string> = {
+  web: join('src', '__tests__', 'integration'),
+  api: join('tests', 'integration'),
 }
 
+// Optional multi-tenant features. The template ships each one (its own migration + integration
+// test); createProject REMOVES the ones the user did not ask for — ask, don't impose. Removing a
+// mid-sequence migration leaves a numbering gap (e.g. 0001 + 0003), which is harmless: migrations
+// run in filename order and a gap is exactly what dropping an unapplied migration looks like.
+interface OptionalDbFeature {
+  flag: 'superAdmin' | 'auditLog'
+  migration: string
+  test: string
+}
+const OPTIONAL_DB_FEATURES: OptionalDbFeature[] = [
+  {
+    flag: 'superAdmin',
+    migration: join('db', 'migrations', '0002_super_admin.sql'),
+    test: 'super-admin.test.ts',
+  },
+  {
+    flag: 'auditLog',
+    migration: join('db', 'migrations', '0003_audit_log.sql'),
+    test: 'audit-log.test.ts',
+  },
+]
+
 /**
- * Apply the multi-tenant choice to the freshly copied project. "Ask, don't impose": the
- * template ships multi-tenant (tenant_id + row-level security), and when the user explicitly
- * chose single-tenant we swap in the simpler single-owner schema and drop the tenant-isolation
- * test (there is nothing to isolate). Either way the variant SOURCE file is removed — it is a
- * Keystone build input, not part of the generated project. A template without the variant
- * (no database) is a no-op.
+ * Tailor the freshly copied project's database to the answers — "ask, don't impose". The template
+ * ships the fullest shape (multi-tenant + super-admin + audit log); this removes whatever the user
+ * did not ask for:
+ *   - single-tenant  → swap in the simple single-owner schema, drop tenant isolation AND every
+ *     optional multi-tenant feature (they are meaningless without tenants).
+ *   - multi-tenant   → keep isolation; drop each optional feature (super-admin, audit log) that
+ *     was not explicitly requested.
+ * The single-tenant variant source is always removed (a build input, never shipped), and an
+ * integration folder left empty is cleaned up. A template with no database variant is a no-op.
  */
-async function applyTenancyChoice(
+async function applyDatabaseChoices(
   projectDir: string,
   template: 'web' | 'api',
-  multiTenant: boolean | undefined,
+  product: KeystoneAnswers['product'],
 ): Promise<void> {
   const variantPath = join(projectDir, SINGLE_TENANT_VARIANT)
-  let variant: string
+  let singleVariant: string
   try {
-    variant = await readFile(variantPath, 'utf8')
+    singleVariant = await readFile(variantPath, 'utf8')
   } catch (error) {
     // No variant in this template (e.g. a future database-less template) — nothing to do.
     if ((error as { code?: string }).code === 'ENOENT') return
     throw error
   }
 
-  // Only an EXPLICIT "no" switches to single-tenant. undefined (a plain site, never asked)
-  // keeps the template's default so behavior for those types is unchanged.
-  if (multiTenant === false) {
-    await writeFile(join(projectDir, ACTIVE_SCHEMA), variant)
-    const isolationTest = join(projectDir, ISOLATION_TEST_BY_TEMPLATE[template])
-    await rm(isolationTest, { force: true })
-    // Drop the integration folder too if the isolation test was its only occupant — a
-    // single-tenant project should have no empty leftover directory.
-    const testDir = dirname(isolationTest)
-    try {
-      if ((await readdir(testDir)).length === 0) await rm(testDir, { recursive: true, force: true })
-    } catch {
-      // Folder already gone or unreadable — nothing to clean up.
+  const integrationDir = join(projectDir, INTEGRATION_DIR_BY_TEMPLATE[template])
+  const dropFeature = async (feature: OptionalDbFeature): Promise<void> => {
+    await rm(join(projectDir, feature.migration), { force: true })
+    await rm(join(integrationDir, feature.test), { force: true })
+  }
+
+  if (product.multiTenant === false) {
+    // Single-tenant: the simple schema and NONE of the multi-tenant machinery. Drop the whole
+    // integration-test folder (isolation, super-admin, audit, and their shared harness — none of
+    // it applies without tenants) and the optional-feature migrations.
+    await writeFile(join(projectDir, ACTIVE_SCHEMA), singleVariant)
+    await rm(integrationDir, { recursive: true, force: true })
+    for (const feature of OPTIONAL_DB_FEATURES) {
+      await rm(join(projectDir, feature.migration), { force: true })
+    }
+  } else if (product.multiTenant === true) {
+    // Multi-tenant: keep isolation and the shared harness; add each optional feature only when
+    // explicitly chosen, else drop its migration and its test.
+    for (const feature of OPTIONAL_DB_FEATURES) {
+      if (product[feature.flag] !== true) await dropFeature(feature)
     }
   }
+  // (multiTenant undefined — a plain site, never asked — keeps the template default untouched.)
 
   await rm(variantPath, { force: true })
 }
@@ -263,9 +298,10 @@ export async function createProject(answers: KeystoneAnswers): Promise<CreateRes
   // even commit a .env. (From the repo the file is already `gitignore` too, kept uniform.)
   await restoreDotfiles(projectDir)
 
-  // Apply the multi-tenant choice: swap to the single-owner database (and drop the isolation
-  // test) when the user explicitly chose single-tenant, and always remove the variant source.
-  await applyTenancyChoice(projectDir, template, answers.product.multiTenant)
+  // Tailor the database to the answers: single vs multi tenant, and the optional multi-tenant
+  // features (super-admin, audit log). Removes whatever was not asked for; always strips the
+  // single-tenant variant source.
+  await applyDatabaseChoices(projectDir, template, answers.product)
 
   // Change only the name, by text substitution, so the rest of the manifest
   // keeps the template's exact formatting (no JSON reflow).

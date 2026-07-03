@@ -85,6 +85,21 @@ Skipped entirely for a plain site (no database), where the question would be noi
 piece the template acts on immediately at creation — the single-tenant variant is applied by the
 create command, not merely recorded.
 
+### 8 & 9. Super-admin? · Audit log? · _yes · no each_ → only inside the multi-tenant path
+
+Two more asked-not-assumed questions, shown ONLY when question 7 = multi-tenant (a single-owner
+project has no other clients to administer and rarely needs a cross-client tamper-proof log). Each is
+independent — neither is bundled with the other or imposed by choosing multi-tenant:
+
+- **Super-admin** → adds a role that can see and act across all clients (for support/administration):
+  the row-level-security policy gains an "or is a super-admin" branch, signalled per connection. No →
+  every session stays scoped to one client.
+- **Audit log** → adds an append-only, tamper-proof record of who changed what, fed automatically by a
+  trigger; updates and deletes on it are rejected. No → no audit log.
+
+Both are applied by the create command (the corresponding migration and its test ship only when
+chosen), not merely recorded.
+
 ---
 
 ## Deep briefing (conditional — only on the "generate a custom identity" path)

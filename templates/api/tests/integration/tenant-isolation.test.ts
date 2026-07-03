@@ -9,89 +9,70 @@
  * and writes at the database level, independent of anything the application
  * code remembers to do.
  *
- * Decision: the default path runs against @electric-sql/pglite — a WASM
- * build of real Postgres that starts in-process, no daemon, no DATABASE_URL.
- * That makes this test exercise the real migration and the real RLS engine
- * on every `pnpm test` run, on a laptop or in CI, with nothing to provision.
- * A previous version of this file skipped entirely when DATABASE_URL was
- * unset, which meant RLS was never actually exercised in the default run —
- * that gap is what this rewrite closes.
+ * The four properties below still hold with the super-admin migration (0002)
+ * applied: the widened policy is "own tenant OR is_super_admin()", and the
+ * shared harness never sets app.is_super_admin here, so is_super_admin()
+ * defaults to false and the OR collapses back to plain tenant isolation. That
+ * is the point of proving it against the FULL migrated schema — isolation must
+ * survive the presence of the super-admin escape hatch, not just its absence.
  *
- * A second, optional suite below runs the identical properties against a
- * real networked Postgres when DATABASE_URL is set, for CI parity with a
+ * Decision: the default path runs against @electric-sql/pglite via the shared
+ * harness (_migrations-harness.ts), which applies EVERY migration in order —
+ * an in-process WASM build of real Postgres, no daemon, no DATABASE_URL. That
+ * makes this test exercise the real migrations and the real RLS engine on every
+ * `pnpm test` run. A previous version applied only 0001 by hand, so the shipped
+ * super-admin and audit-log migrations were never present during the test —
+ * that gap is what the harness closes.
+ *
+ * A second, optional suite below runs the identical properties against a real
+ * networked Postgres when DATABASE_URL is set, for CI parity with a
  * production-like engine. It is additive, not a replacement for the default
- * in-process run.
+ * in-process run, and applies the same full migration set.
  */
-import { readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-import { PGlite } from '@electric-sql/pglite'
 import { Client } from 'pg'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const MIGRATION_PATH = join(__dirname, '..', '..', 'db', 'migrations', '0001_initial_schema.sql')
-const MIGRATION_SQL = readFileSync(MIGRATION_PATH, 'utf8')
+import {
+  APP_ROLE,
+  applyAllMigrations,
+  createHarness,
+  grantAppRoleSql,
+  setClientConfig,
+  type Harness,
+  type QueryableConnection,
+} from './_migrations-harness.js'
 
 // Two arbitrary but fixed tenant ids: fixed (not random per run) so a failed
 // assertion always reproduces the same rows if inspected manually.
 const TENANT_A = '11111111-1111-1111-1111-111111111111'
 const TENANT_B = '22222222-2222-2222-2222-222222222222'
 
-// Non-owner role RLS is proven against. RLS (even with FORCE) is bypassed
-// for the table owner / connecting superuser, so asserting anything about
-// the policy requires a session running as a role that only holds the
-// grants below — otherwise every test would "pass" for the wrong reason.
-const APP_ROLE = 'app_user'
-
 /**
- * Minimal shape both drivers (pg's Client and PGlite) satisfy for the calls
- * this test needs. Lets the four property assertions below run unchanged
- * against either backend instead of being duplicated per-driver.
+ * The four tenant-isolation properties the RLS policy exists to guarantee.
+ * `setTenant` and `getConnection` are injected so the identical contract runs
+ * against both the PGlite harness and the optional networked-Postgres client —
+ * divergence here would let one path go stale without the other catching it.
  */
-interface QueryableConnection {
-  query(sql: string, params?: unknown[]): Promise<{ rows: Array<Record<string, unknown>> }>
-}
-
-/**
- * Sets the RLS session variable for the current connection, mirroring what
- * the application does per-request in production (see the policy comment in
- * 0001_initial_schema.sql). The `false` third argument makes the setting
- * session-scoped (not transaction-local) — both backends here run each test
- * as a sequence of separate statements, not inside one open transaction, so
- * a transaction-scoped setting would not survive between them.
- */
-async function setTenant(connection: QueryableConnection, tenantId: string | null): Promise<void> {
-  await connection.query('select set_config($1, $2, false)', ['app.tenant_id', tenantId ?? ''])
-}
-
-/**
- * The four tenant-isolation properties the RLS policy in
- * 0001_initial_schema.sql exists to guarantee. Shared between the default
- * PGlite run and the optional networked-Postgres run so both backends prove
- * exactly the same contract — divergence here would let one path go stale
- * without the other catching it.
- */
-function runTenantIsolationProperties(getConnection: () => QueryableConnection): void {
+function runTenantIsolationProperties(
+  setTenant: (tenantId: string | null) => Promise<void>,
+  getConnection: () => QueryableConnection,
+): void {
   it('the owning tenant reads exactly its own rows', async () => {
-    const connection = getConnection()
-    await setTenant(connection, TENANT_A)
-    await connection.query('insert into items (tenant_id, name) values ($1, $2)', [
+    await setTenant(TENANT_A)
+    await getConnection().query('insert into items (tenant_id, name) values ($1, $2)', [
       TENANT_A,
       'tenant-a-item',
     ])
 
-    const result = await connection.query('select name, tenant_id from items')
+    const result = await getConnection().query('select name, tenant_id from items')
 
     expect(result.rows).toHaveLength(1)
     expect(result.rows[0]).toMatchObject({ name: 'tenant-a-item', tenant_id: TENANT_A })
   })
 
   it("a second tenant reads 0 of the first tenant's rows", async () => {
-    const connection = getConnection()
-    await setTenant(connection, TENANT_A)
-    await connection.query('insert into items (tenant_id, name) values ($1, $2)', [
+    await setTenant(TENANT_A)
+    await getConnection().query('insert into items (tenant_id, name) values ($1, $2)', [
       TENANT_A,
       'tenant-a-item',
     ])
@@ -99,20 +80,19 @@ function runTenantIsolationProperties(getConnection: () => QueryableConnection):
     // Still scoped to tenant B: a plain "select * from items" (no WHERE
     // tenant_id clause at all) must return NOTHING of tenant A's. If the
     // policy were missing or misconfigured, this would return tenant A's row.
-    await setTenant(connection, TENANT_B)
-    const result = await connection.query('select name, tenant_id from items')
+    await setTenant(TENANT_B)
+    const result = await getConnection().query('select name, tenant_id from items')
 
     expect(result.rows.every((row) => row.tenant_id !== TENANT_A)).toBe(true)
   })
 
   it('a second tenant cannot INSERT a row tagged as the first tenant', async () => {
-    const connection = getConnection()
-    await setTenant(connection, TENANT_B)
+    await setTenant(TENANT_B)
 
     // The policy's WITH CHECK clause (not just USING) is what blocks this —
     // USING alone would only filter reads, not validate writes.
     await expect(
-      connection.query('insert into items (tenant_id, name) values ($1, $2)', [
+      getConnection().query('insert into items (tenant_id, name) values ($1, $2)', [
         TENANT_A,
         'cross-tenant-write-attempt',
       ]),
@@ -120,70 +100,49 @@ function runTenantIsolationProperties(getConnection: () => QueryableConnection):
   })
 
   it('with no app.tenant_id set, 0 rows are visible (fail-closed)', async () => {
-    const connection = getConnection()
-    await setTenant(connection, TENANT_A)
-    await connection.query('insert into items (tenant_id, name) values ($1, $2)', [
+    await setTenant(TENANT_A)
+    await getConnection().query('insert into items (tenant_id, name) values ($1, $2)', [
       TENANT_A,
       'tenant-a-item',
     ])
 
-    // No set_config call for app.tenant_id at all from here — simulates a
-    // request that forgot to set the tenant. nullif(current_setting(...), '')
-    // must resolve to NULL, and the policy's NULL comparison must match zero
-    // rows: the fail-closed guarantee this migration exists to provide.
-    await setTenant(connection, null)
+    // No tenant set from here — simulates a request that forgot to set the
+    // tenant. nullif(current_setting(...), '') must resolve to NULL, and the
+    // policy's NULL comparison must match zero rows: the fail-closed guarantee
+    // this migration exists to provide. (is_super_admin() is also false here,
+    // so the OR does not open a hole.)
+    await setTenant(null)
 
-    const result = await connection.query('select * from items')
+    const result = await getConnection().query('select * from items')
 
     expect(result.rows).toHaveLength(0)
   })
 }
 
 describe('tenant isolation (RLS) — in-process Postgres via PGlite', () => {
-  let db: PGlite
+  let harness: Harness
 
   beforeAll(async () => {
-    // PGlite is a WASM build of real Postgres running in-process: no
-    // daemon, no network socket, no DATABASE_URL. This is what makes the
-    // suite exercise the real RLS engine by default instead of skipping.
-    db = new PGlite()
-
-    // Run the real migration so this test proves the actual shipped policy,
-    // not a hand-written approximation of it.
-    await db.exec(MIGRATION_SQL)
-
-    // Non-owner role: PGlite's default connection is the bootstrap
-    // superuser, which bypasses RLS even with FORCE ROW LEVEL SECURITY.
-    // Without this role switch, every property below would pass for the
-    // wrong reason (superuser sees everything, not "the policy allows it").
-    await db.exec(`
-      drop role if exists ${APP_ROLE};
-      create role ${APP_ROLE} nologin;
-      grant select, insert, update, delete on items to ${APP_ROLE};
-    `)
+    // Full migrated schema (0001 + 0002 + 0003) + the non-owner app role, so
+    // isolation is proven against exactly what ships, super-admin escape hatch
+    // and audit triggers included.
+    harness = await createHarness()
   })
 
   afterAll(async () => {
-    await db?.close()
+    await harness?.close()
   })
 
   beforeEach(async () => {
-    // Reset to the owner role for cleanup: app.tenant_id is session-scoped
-    // (see setTenant's "false" argument) and carries over from whichever
-    // test ran previously. Deleting AS app_user here would only delete rows
-    // visible under that leftover scope (RLS's USING clause applies to
-    // DELETE too) — silently leaving other tenants' rows behind and making
-    // test order matter. The owner bypasses RLS, so this always clears the
-    // whole table regardless of what the previous test left set.
-    await db.exec('reset role;')
-    await db.exec('delete from items;')
-
-    // THEN switch to the non-owner role for the test itself — this is what
-    // makes RLS apply (not bypass) for every assertion in the test body.
-    await db.exec(`set role ${APP_ROLE};`)
+    // Owner-side cleanup + clear session vars + switch to the non-owner role.
+    // See the harness reset() comment for why cleanup runs as the owner.
+    await harness.reset()
   })
 
-  runTenantIsolationProperties(() => db as unknown as QueryableConnection)
+  runTenantIsolationProperties(
+    (tenantId) => harness.setTenant(tenantId),
+    () => harness.db as unknown as QueryableConnection,
+  )
 })
 
 // Optional CI-parity path: identical properties against a real networked
@@ -200,18 +159,11 @@ describe.skipIf(!process.env.DATABASE_URL)(
       client = new Client({ connectionString: process.env.DATABASE_URL! })
       await client.connect()
 
-      await client.query(MIGRATION_SQL)
-
-      await client.query(`
-        do $$
-        begin
-          if not exists (select 1 from pg_roles where rolname = '${APP_ROLE}') then
-            create role ${APP_ROLE} nologin;
-          end if;
-        end
-        $$;
-      `)
-      await client.query(`grant select, insert, update, delete on items to ${APP_ROLE};`)
+      // Same full migration set and same role grants as the PGlite path, via
+      // the shared harness helpers — the two backends prove one identical
+      // schema, never a drifted subset.
+      await applyAllMigrations((sql) => client.query(sql))
+      await client.query(grantAppRoleSql(APP_ROLE))
     })
 
     afterAll(async () => {
@@ -219,14 +171,33 @@ describe.skipIf(!process.env.DATABASE_URL)(
     })
 
     beforeEach(async () => {
-      // Same ordering as the PGlite suite above, and for the same reason:
-      // clean up as the owner (bypasses RLS, always clears the whole table)
-      // BEFORE switching to the non-owner role the test body runs as.
+      // Same ordering as the harness reset(): clean up as the owner (bypasses
+      // RLS, always clears the whole table) and clear session vars BEFORE
+      // switching to the non-owner role the test body runs as.
       await client.query('reset role;')
+      // TRUNCATE, not DELETE: the append-only trigger (0003) rejects DELETE on
+      // audit_log even for the owner. Guarded with to_regclass so a project
+      // where the audit migration was stripped still resets cleanly. Same
+      // reasoning as the harness reset().
+      await client.query(`
+        do $$
+        begin
+          if to_regclass('public.audit_log') is not null then
+            truncate audit_log;
+          end if;
+        end
+        $$;
+      `)
       await client.query('delete from items;')
+      await setClientConfig(client, 'app.tenant_id', null)
+      await setClientConfig(client, 'app.is_super_admin', null)
+      await setClientConfig(client, 'app.actor', null)
       await client.query(`set role ${APP_ROLE};`)
     })
 
-    runTenantIsolationProperties(() => client as unknown as QueryableConnection)
+    runTenantIsolationProperties(
+      (tenantId) => setClientConfig(client, 'app.tenant_id', tenantId),
+      () => client as unknown as QueryableConnection,
+    )
   },
 )

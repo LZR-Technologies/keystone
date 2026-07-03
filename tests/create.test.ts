@@ -129,31 +129,75 @@ test('createProject: single-tenant swaps in the simple schema and drops the isol
       stat(join(projectDir, 'db/single-tenant.schema.sql')),
       'variant source removed',
     )
+    // Single-tenant means no multi-tenant machinery at all: the optional-feature migrations go too.
+    await assert.rejects(
+      stat(join(projectDir, 'db/migrations/0002_super_admin.sql')),
+      'super-admin migration dropped for single-tenant',
+    )
+    await assert.rejects(
+      stat(join(projectDir, 'db/migrations/0003_audit_log.sql')),
+      'audit-log migration dropped for single-tenant',
+    )
   } finally {
     await rm(parent, { recursive: true, force: true })
   }
 })
 
-test('createProject: multi-tenant keeps tenant isolation and its test', async () => {
+test('createProject: multi-tenant drops optional features that were not requested', async () => {
   const parent = await mkdtemp(join(tmpdir(), 'keystone-'))
   try {
     const a = answers('service', false, parent)
     a.product.multiTenant = true
+    // superAdmin and auditLog left undefined — not requested.
     const { projectDir } = await createProject(a)
 
     const schema = await readFile(join(projectDir, 'db/migrations/0001_initial_schema.sql'), 'utf8')
     assert.match(schema, /tenant_id uuid/i, 'multi-tenant schema keeps the tenant_id column')
     assert.match(schema, /create policy/i, 'multi-tenant schema keeps the RLS policy')
-
     assert.ok(
       (await stat(join(projectDir, 'tests/integration/tenant-isolation.test.ts'))).isFile(),
       'isolation test kept for multi-tenant',
     )
-    // Even for multi-tenant, the variant source itself never ships.
+
+    // Optional features not asked for → their migrations and tests are gone (ask, don't impose).
+    await assert.rejects(
+      stat(join(projectDir, 'db/migrations/0002_super_admin.sql')),
+      'super-admin migration dropped when not asked',
+    )
+    await assert.rejects(
+      stat(join(projectDir, 'db/migrations/0003_audit_log.sql')),
+      'audit-log migration dropped when not asked',
+    )
+    await assert.rejects(
+      stat(join(projectDir, 'tests/integration/super-admin.test.ts')),
+      'super-admin test dropped when not asked',
+    )
     await assert.rejects(
       stat(join(projectDir, 'db/single-tenant.schema.sql')),
       'variant source removed',
     )
+  } finally {
+    await rm(parent, { recursive: true, force: true })
+  }
+})
+
+test('createProject: multi-tenant keeps super-admin and audit log when both are requested', async () => {
+  const parent = await mkdtemp(join(tmpdir(), 'keystone-'))
+  try {
+    const a = answers('service', false, parent)
+    a.product.multiTenant = true
+    a.product.superAdmin = true
+    a.product.auditLog = true
+    const { projectDir } = await createProject(a)
+
+    for (const f of [
+      'db/migrations/0002_super_admin.sql',
+      'db/migrations/0003_audit_log.sql',
+      'tests/integration/super-admin.test.ts',
+      'tests/integration/audit-log.test.ts',
+    ]) {
+      assert.ok((await stat(join(projectDir, f))).isFile(), `expected ${f} kept`)
+    }
   } finally {
     await rm(parent, { recursive: true, force: true })
   }

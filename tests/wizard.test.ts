@@ -7,9 +7,10 @@ import { runWizard } from '../src/wizard.ts'
 import { ScriptedPrompter } from '../src/prompter.ts'
 
 test('runWizard: maps choices to the right answers (with preset name)', async () => {
-  // type, language, screen, look, sensitive, multiTenant, version, visibility, parentDir.
-  // A "system" is database-backed, so the multi-tenant question is asked (here: yes).
-  const prompter = new ScriptedPrompter(['2', '1', '2', '1', '1', '1', '1', '2', '/work'])
+  // type, language, screen, look, sensitive, multiTenant=yes, superAdmin=yes, auditLog=yes,
+  // version, visibility, parentDir. A "system" is database-backed and multi-tenant, so the
+  // super-admin and audit-log questions are both asked.
+  const prompter = new ScriptedPrompter(['2', '1', '2', '1', '1', '1', '1', '1', '1', '2', '/work'])
   const answers = await runWizard(prompter, 'my-app')
 
   assert.deepEqual(answers, {
@@ -21,6 +22,8 @@ test('runWizard: maps choices to the right answers (with preset name)', async ()
       look: 'generate',
       sensitive: true,
       multiTenant: true,
+      superAdmin: true,
+      auditLog: true,
     },
     setup: {
       versionTarget: 'github',
@@ -30,12 +33,25 @@ test('runWizard: maps choices to the right answers (with preset name)', async ()
   })
 })
 
-test('runWizard: asks multi-tenant for a service and records a single-tenant choice', async () => {
-  // type=service, language, screen, look, sensitive, multiTenant=no(2), version, visibility, parentDir
+test('runWizard: super-admin and audit are asked (and independent) inside multi-tenant', async () => {
+  // type=system, lang, screen, look, sensitive, multiTenant=yes, superAdmin=yes(1), auditLog=no(2),
+  // version, visibility, parentDir. Proves the two are independent questions, not a bundle.
+  const prompter = new ScriptedPrompter(['2', '2', '2', '3', '2', '1', '1', '2', '1', '1', '/work'])
+  const answers = await runWizard(prompter, 'my-app')
+  assert.equal(answers.product.multiTenant, true)
+  assert.equal(answers.product.superAdmin, true)
+  assert.equal(answers.product.auditLog, false)
+})
+
+test('runWizard: single-tenant skips super-admin and audit entirely', async () => {
+  // type=service, language, screen, look, sensitive, multiTenant=no(2), version, visibility, parentDir.
+  // Only 9 answers scripted: if super-admin/audit were asked, the list would run out.
   const prompter = new ScriptedPrompter(['3', '2', '2', '3', '2', '2', '1', '1', '/work'])
   const answers = await runWizard(prompter, 'my-svc')
   assert.equal(answers.product.type, 'service')
   assert.equal(answers.product.multiTenant, false)
+  assert.equal(answers.product.superAdmin, undefined)
+  assert.equal(answers.product.auditLog, undefined)
 })
 
 test('runWizard: does NOT ask multi-tenant for a plain site (no database)', async () => {

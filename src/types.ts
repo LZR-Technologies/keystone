@@ -32,6 +32,18 @@ export interface ProductBriefing {
    * no row-level security) and no tenant-isolation test — Keystone asks instead of assuming.
    */
   multiTenant?: boolean
+  /**
+   * Multi-tenant only (asked only when multiTenant is true). Whether to include a super-admin
+   * role that sees across all tenants — the row-level-security policy gains an "or is a
+   * super-admin" branch. Undefined/false leaves it out. Asked, not assumed.
+   */
+  superAdmin?: boolean
+  /**
+   * Multi-tenant only (asked only when multiTenant is true). Whether to include an append-only,
+   * tamper-proof audit log (who did what, when) fed by a trigger. Undefined/false leaves it out.
+   * Asked, not assumed.
+   */
+  auditLog?: boolean
 }
 
 /** Round B — the technical setup (where the project lives). */
