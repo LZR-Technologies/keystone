@@ -27,6 +27,11 @@ describe('rateLimitPlugin', () => {
     expect(first.statusCode).toBe(HTTP.OK)
     expect(second.statusCode).toBe(HTTP.OK)
     expect(third.statusCode).toBe(HTTP.TOO_MANY_REQUESTS)
-    expect(third.json<{ error: string }>().error).toBe('Rate limit exceeded')
+    // RFC 9457 Problem Details body + a Retry-After header telling the client when to retry.
+    expect(third.headers['content-type']).toContain('application/problem+json')
+    expect(third.headers['retry-after']).toBeDefined()
+    const problem = third.json<{ title: string; status: number }>()
+    expect(problem.title).toBe('Too Many Requests')
+    expect(problem.status).toBe(HTTP.TOO_MANY_REQUESTS)
   })
 })

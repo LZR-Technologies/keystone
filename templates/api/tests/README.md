@@ -5,20 +5,27 @@
 - **Unit and app-level tests** are colocated with the code they verify, in
   `src/**/__tests__/*.test.ts` — the test moves, dies, and grows with its
   subject.
-- **Integration and end-to-end tests** (the ones that need external processes:
-  a real database, a running stack) live here in `tests/`, kept out of `src/`
-  because they are wired to infrastructure, not to a single module.
+- **Integration tests** (the ones wired to infrastructure: a real database)
+  live here in `tests/`, kept out of `src/` because they belong to the system,
+  not to a single module. A future socket-level E2E suite (a running stack)
+  would live here too — it is not built yet (see the pyramid below).
 
 Both locations are picked up by `pnpm run test` (see `vitest.config.ts`).
 
-## The four-layer test pyramid
+## The test pyramid
 
 ```
-        /  E2E  \          few - whole system, real HTTP, real database
-       / integr. \         some - modules against a REAL database
-      / bus. rule \        more - domain decisions, policies, edge cases
-     /    unit     \       most - fast, isolated, milliseconds each
+        /  E2E  \          real HTTP over a socket - DESIGNED, not yet built
+       / app-lvl \         whole app via inject() - full HTTP lifecycle, no socket
+      / integr.   \        some - modules against a REAL database
+     / bus. rule   \       more - domain decisions, policies, edge cases
+    /    unit       \      most - fast, isolated, milliseconds each
 ```
+
+The layers that carry tests today are unit, business-rule, integration, and
+app-level. The socket-level E2E layer at the apex is described below as the
+intended top of the pyramid but is deliberately **not built into this mold** —
+see layer 4.
 
 1. **Unit (the base — most tests).** One function or one layer, dependencies
    replaced by fakes, no I/O. Milliseconds each; these run on every save.
@@ -40,15 +47,23 @@ Both locations are picked up by `pnpm run test` (see `vitest.config.ts`).
    Postgres (migrated by `scripts/db-migrate.sh`) when `DATABASE_URL` is set,
    for CI parity with a production-like engine; it skips cleanly
    (`describe.skipIf`) otherwise.
-4. **End-to-end (the top — few tests).** The whole service, boot to response.
-   Expensive and slower, so they cover the critical paths only; everything
-   else is already proven by the layers below. Example: `src/__tests__/app.test.ts`
-   boots the real Fastify app via `buildApp()` and drives it end to end with
-   `inject()` — no mocked layers, no sockets.
-
-App-level tests via Fastify's `inject()` (`src/__tests__/app.test.ts`) sit
-between 2 and 3: full HTTP lifecycle — routing, hooks, error handler — with
-no sockets and no external processes.
+4. **App-level (the whole app, no socket).** The whole service, boot to
+   response, with no layer mocked — but driven in-process, not over a network.
+   Example: `src/__tests__/app.test.ts` boots the real Fastify app via
+   `buildApp()` and exercises the full HTTP lifecycle — routing, hooks, error
+   handler — with Fastify's `inject()`. No sockets, no external processes, so
+   these stay fast while still proving the app end to end at the code level.
+   These sit just above integration: broader than a single module, but not the
+   full network path.
+5. **End-to-end over a real socket (DESIGNED, not built here).** The layer that
+   would boot the service, bind a port, and drive it with a real HTTP client
+   across an actual socket — the one thing `inject()` does not cover (the
+   network transport itself). This mold does **not** ship such a suite: for a
+   template with a single health route, the app-level `inject()` tests already
+   prove the HTTP path, and standing up a socket-bound server per test earns
+   little. It is documented here as the intended apex so a project that grows
+   real network-facing behavior knows where that test belongs — not claimed as
+   already present.
 
 ## The philosophy: the suite never stabilizes, it only grows
 

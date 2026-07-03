@@ -1,6 +1,6 @@
 # Service (API) template
 
-An official starting point for services (APIs) on **TypeScript/Node**.
+A production-ready starting point for services (APIs) on **TypeScript/Node**.
 
 ## Stack
 

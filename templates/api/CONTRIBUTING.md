@@ -8,7 +8,7 @@ all times.
 
 Three branch levels:
 
-- **`main`** — the official branch. Protected: changes arrive only through
+- **`main`** — the protected branch. Protected: changes arrive only through
   reviewed, CI-green pull requests, never a direct commit. Every merge
   deploys production.
 - **`develop`** — the integration branch. Every merge deploys staging.

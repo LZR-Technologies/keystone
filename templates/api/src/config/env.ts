@@ -13,6 +13,13 @@ const DEFAULT_PORT = 3000
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(DEFAULT_PORT),
+  // Default 0.0.0.0 = listen on ALL network interfaces. This is deliberate for
+  // the primary target: inside a container or a cloud runtime the process must
+  // accept connections from the orchestrator/load balancer, which reach it on
+  // an interface other than loopback — binding to 127.0.0.1 there makes the
+  // service unreachable. It is a security-relevant choice (the port is exposed
+  // to whatever network the host sits on), so on a local machine the owner
+  // should override HOST=127.0.0.1 to keep the service private to that machine.
   HOST: z.string().default('0.0.0.0'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
 

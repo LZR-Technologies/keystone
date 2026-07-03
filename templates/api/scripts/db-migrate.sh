@@ -1,10 +1,13 @@
 #!/bin/sh
 # db-migrate.sh - applies db/migrations/NNNN_*.sql in filename order via psql.
 #
-# The glob below only matches the documented NNNN_short_description.sql
-# convention (db/migrations/README.md) - a stray non-migration file dropped
-# in the folder (README.md, a .sql scratch file without the numeric prefix)
-# is silently skipped instead of being picked up and "applied" by accident.
+# The apply loop only matches the documented NNNN_short_description.sql
+# convention (db/migrations/README.md), so a non-.sql file (README.md) is
+# never picked up and "applied" by accident. But a stray *.sql file that
+# breaks the naming convention is a different hazard: it would run neither, and
+# silently skipping it means a "green" deploy on an incomplete schema. Before
+# applying anything, this script scans for such files and FAILS LOUDLY rather
+# than skip them in silence (see the pre-apply guard below).
 #
 # Idempotent: applied filenames are recorded in a schema_migrations table and
 # skipped on subsequent runs, so this script is safe to run on every deploy.
@@ -38,6 +41,40 @@ MIGRATIONS_DIR="$SCRIPT_DIR/../db/migrations"
 
 if [ ! -d "$MIGRATIONS_DIR" ]; then
   echo "ERROR: migrations directory not found: $MIGRATIONS_DIR" >&2
+  exit 1
+fi
+
+# Guard before touching the database: a .sql file that does NOT match the
+# NNNN_*.sql convention would be skipped silently by the apply loop below,
+# producing a "green" deploy on an INCOMPLETE schema (e.g. someone drops
+# 002_x.sql or add_column.sql without the four-digit prefix - it just never
+# runs, and no one is told). A missed migration is a correctness bug, not a
+# formatting nit, so we refuse to guess: list every offending file and fail
+# loudly BEFORE opening any DB connection. The operator either renames it to
+# the convention (so it runs, in order) or removes it. The README.md beside the
+# migrations is not .sql, so it is not a candidate here.
+unconventional=""
+for sql in "$MIGRATIONS_DIR"/*.sql; do
+  # When the glob matches nothing, sh leaves the pattern literal - skip it.
+  [ -e "$sql" ] || continue
+
+  sql_name=$(basename "$sql")
+
+  # Re-test the same convention the apply loop uses. `case` is POSIX and does
+  # glob matching without spawning a subprocess per file.
+  case "$sql_name" in
+    [0-9][0-9][0-9][0-9]_*.sql) ;; # matches the convention - will be applied
+    *) unconventional="$unconventional  $sql_name\n" ;;
+  esac
+done
+
+if [ -n "$unconventional" ]; then
+  echo "ERROR: found .sql file(s) in $MIGRATIONS_DIR that do NOT match the" >&2
+  echo "NNNN_short_description.sql convention and would be SKIPPED SILENTLY:" >&2
+  # printf (not echo -e) to expand the \n portably across POSIX shells.
+  printf "%b" "$unconventional" >&2
+  echo "Rename each to the numbered convention so it is applied in order, or" >&2
+  echo "remove it. Refusing to deploy on a possibly incomplete schema." >&2
   exit 1
 fi
 

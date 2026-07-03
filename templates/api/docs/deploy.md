@@ -9,7 +9,7 @@ migrations, then code, then a smoke test** — in that order, always.
 | **production** | `main`    | `.github/workflows/deploy-production.yml` |
 
 `develop` is the integration branch: every merge lands on staging
-automatically. `main` is the official branch: it only moves through reviewed,
+automatically. `main` is the protected branch: it only moves through reviewed,
 CI-green pull requests (see `scripts/setup-branch-protection.sh`), and every
 merge deploys production.
 

@@ -18,8 +18,13 @@ This project ships with a harness for the AI that builds it. Full map in
   spec diverge, the spec wins.
 - **Reviewers (B3):** `.claude/agents/` — spec reviewer, code reviewer, security auditor,
   each in its own isolated context.
-- **Guardrails (B4):** `.claude/hooks/` blocks committing a secret and touching a protected
-  branch. Hard blocks, not warnings.
+- **Guardrails (B4):** `.claude/hooks/` and the git hooks in `.husky/` block committing a
+  secret and touching a protected branch. These are local hooks, not perfect walls: they only
+  fire on machines that installed them (`pnpm install` runs `husky`), a commit can bypass them
+  with `--no-verify`, and the secret scan matches known key shapes so a novel format can slip
+  through. The real, unbypassable protection lives server-side — branch protection
+  (`scripts/setup-branch-protection.sh`) and CI secret scanning — with the local hooks as the
+  fast first line that catches the mistake before it ever leaves the laptop.
 - **Session continuity (B5):** say **"resume session"** (or "continue") to start a session and
   **"close session"** (or "wrap up") to end one. The agent reads the newest briefing, surveys
   the codebase, and on close writes the next briefing plus a dated entry in the coder's daily
@@ -70,7 +75,7 @@ backwards. HTTP types stop at the controller; SQL stops at the repository.
 
 Three branch levels:
 
-- **main** — the official branch. Protected: changes arrive only through
+- **main** — the protected branch. Protected: changes arrive only through
   reviewed, CI-green pull requests (never a direct commit — git hooks and
   `scripts/setup-branch-protection.sh` both enforce it). Every merge deploys
   production.
@@ -89,9 +94,11 @@ feat/fix/docs/refactor/test/chore/security (see `config/commitlint-config/`).
 
 Full doc: [tests/README.md](tests/README.md). The short version:
 
-- **Four-layer pyramid:** many fast unit tests at the base, then
-  business-rule tests, then integration tests against a REAL database
-  (mocks lie about SQL and RLS), and a few end-to-end tests at the top.
+- **Test pyramid:** many fast unit tests at the base, then business-rule tests,
+  then integration tests against a REAL database (mocks lie about SQL and RLS),
+  then app-level tests that drive the whole app via Fastify `inject()`. A
+  real-socket E2E layer sits at the apex by design but is not built into this
+  mold (see `tests/README.md`) — the `inject()` tests already cover the HTTP path.
 - **The suite never stabilizes, it only grows** with the code. Every feature
   ships with its test in the same PR; every bug fix starts with a failing test.
 - Coverage threshold: 100% (enforced by `pnpm run test:coverage`). Only the
@@ -106,7 +113,7 @@ the code in every environment, never edited after being applied
 (`db/migrations/README.md`). Every table follows the shape of
 `0001_initial_schema.sql`:
 
-- `id uuid primary key default gen_random_uuid()` — unguessable ids
+- `id uuid primary key default gen_random_uuid()` — non-sequential ids (UUIDs)
 - `tenant_id uuid not null` — the tenant column on every row (tenant isolation)
 - `created_at` / `updated_at timestamptz not null default now()` — with a
   trigger keeping `updated_at` honest

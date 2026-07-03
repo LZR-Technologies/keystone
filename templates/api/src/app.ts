@@ -3,6 +3,7 @@ import Fastify from 'fastify'
 import { logger } from './config/logger.js'
 import { healthRoutes } from './modules/health/index.js'
 import { errorHandler } from './shared/middleware/error-handler.js'
+import { rateLimitPlugin } from './shared/middleware/rate-limit.js'
 
 import type { FastifyInstance } from 'fastify'
 
@@ -63,6 +64,13 @@ export async function buildApp(): Promise<FastifyInstance> {
     // its heuristics introduced vulnerabilities of their own.
     reply.header('X-XSS-Protection', '0')
   })
+
+  // Rate limit every route — a public API entry point must not be unbounded (manual §6).
+  // Registered before routes so it protects all of them, defaults live in the plugin. The
+  // counter is in-memory and per-process: correct for a single node; swap for a shared store
+  // (e.g. Redis) when running more than one — called out so it is a conscious limit, not a
+  // hidden one.
+  await app.register(rateLimitPlugin, {})
 
   // Module routes — one register call per module, in src/modules/*.
   await app.register(healthRoutes)

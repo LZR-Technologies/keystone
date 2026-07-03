@@ -12,4 +12,9 @@ case "$branch" in
     ;;
 esac
 
+# Secret scan before anything else: refuse to build a commit object that
+# carries an apparent credential (a secret in history survives its own removal).
+# Runs before lint-staged so a rejected commit never spends time formatting.
+sh "$(dirname "$0")/../scripts/scan-secrets.sh"
+
 npx lint-staged
