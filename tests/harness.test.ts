@@ -248,6 +248,30 @@ test('spec OS: every generated project ships the subagent-driven-development rul
   }
 })
 
+test('spec OS: every generated project ships discovery — the rule and the adaptive template', async () => {
+  // Before the technical spec, substantial work does product/UX/business discovery, scaled by level.
+  // Both the rule and the fill-in template must ship with real content, not stubs, in every project.
+  for (const type of ['service', 'site'] as const) {
+    const parent = await mkdtemp(join(tmpdir(), 'keystone-'))
+    try {
+      const { projectDir } = await createProject(answers(type, parent))
+      const rule = await readFile(
+        join(projectDir, '.claude/rules/discovery-before-spec.md'),
+        'utf8',
+      )
+      for (const marker of ['business questions', 'UX artifacts', 'Critical / regulated']) {
+        assert.ok(rule.includes(marker), `${type}: discovery rule covers "${marker}"`)
+      }
+      const template = await readFile(join(projectDir, 'discovery/discovery.md'), 'utf8')
+      for (const section of ['## Problem', '## Value proposition', '## UX journey']) {
+        assert.ok(template.includes(section), `${type}: discovery template has "${section}"`)
+      }
+    } finally {
+      await rm(parent, { recursive: true, force: true })
+    }
+  }
+})
+
 // Run a guardrail hook exactly as Claude Code would: JSON tool call on stdin, read the
 // exit code (2 = blocked, 0 = allowed).
 const SECRET_HOOK = resolve(

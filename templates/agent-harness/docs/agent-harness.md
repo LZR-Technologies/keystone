@@ -36,6 +36,9 @@ and keeping the always-on layer lean is discipline.
 
 The spec is the source of truth; code derives from it.
 
+- For substantial work (product feature and up), the feature spec is preceded by **discovery**
+  (rule: `.claude/rules/discovery-before-spec.md`, template: `discovery/discovery.md`): the problem,
+  the user, the value, and success -- the questions that come before the "how", scaled to the level.
 - Every feature opens with `specs/<slug>/spec.md`: the request restated **plus a verifiable
   "done" target**, approved before any code is written.
 - Before that approval, the spec goes through a **clarification pass** (rule:
