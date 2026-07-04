@@ -26,9 +26,10 @@ export function formatReport(results: CheckResult[]): string {
   for (const r of results) {
     // Neutral mark for not-applicable — never a green ✓ that reads as an approval.
     const mark = r.notApplicable ? '–' : r.passed ? '✓' : '✗'
-    // Show the detail for anything that is not a plain pass (failures and not-applicable),
-    // so "not applicable" is stated outright instead of hiding behind a bare mark.
-    const showDetail = r.notApplicable || !r.passed
+    // Show the detail for anything that is not a plain pass: failures, not-applicable, AND a
+    // caveated pass (a real ✓ whose detail the reader must still see, e.g. "single-owner schema —
+    // no tenant isolation"). A plain, caveat-free pass stays a bare ✓.
+    const showDetail = r.notApplicable || !r.passed || r.caveat === true
     lines.push(`   ${mark} [${r.pillar}] ${r.title}${showDetail ? ` — ${r.detail}` : ''}`)
   }
 
