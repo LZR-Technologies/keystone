@@ -60,8 +60,10 @@ Keystone has three commands:
   fast guards.
 - **`analyze`** measures an existing project against the standard (read-only).
 
-Most of Layer A's pillars ship today; the rest are on the roadmap, tracked per pillar in
-[docs/pillars.md](docs/pillars.md).
+What ships of Layer A today is what `check` enforces — the text guards plus the project's own
+gates (format, lint, types, tests, dependency audit) — and what the templates lay in: the example
+database, the deploy pipelines, and the git hooks. The remaining Layer A pillars are on the
+roadmap, tracked per pillar in [docs/pillars.md](docs/pillars.md).
 
 ## Quick start
 
