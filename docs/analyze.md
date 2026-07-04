@@ -48,8 +48,12 @@ These are the only checks `analyze` performs right now — all plain, determinis
 2. **`.env` kept out of the code** — checks for a `.gitignore` rule covering `.env`.
 3. **Has tests** — looks for test files or a `tests/` folder.
 4. **Has a README** — looks for a `README.md` at the root.
-5. **Database conventions** — a plain-text match over `.sql` files for four expected terms (`uuid`,
-   `tenant_id`, `created_at`, `deleted_at`). It is a text check, not a real SQL analysis.
+5. **Database conventions** — a plain-text match over `.sql` files (with SQL comments stripped
+   first, so a term mentioned only in prose never counts) for three core terms (`uuid`,
+   `created_at`, `deleted_at`). Tenant isolation (`tenant_id`) is reported separately, never as a
+   pass/fail: a single-owner schema is a legitimate choice, so the check passes with an explicit
+   "single-owner schema — no tenant isolation" note instead of claiming isolation that does not
+   exist. It is a text check, not a real SQL analysis.
 6. **No oversized files** — flags files past the size threshold.
 
 ## The report (three parts)

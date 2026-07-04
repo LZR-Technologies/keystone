@@ -39,6 +39,52 @@ test('runChecks: database without the conventions fails', () => {
   assert.match(db?.detail ?? '', /missing/)
 })
 
+test('runChecks: tenant_id mentioned only in a comment does NOT count as tenant isolation', () => {
+  // The single-owner variant explains its deliberate lack of tenant_id in a comment. That mention
+  // must not be read as real isolation — otherwise a single-owner schema wins a false isolation seal.
+  const sql = [
+    '-- This project serves ONE owner, so there is no tenant_id column.',
+    '/* If you later need multiple clients, add tenant_id to every table. */',
+    'create table items (id uuid primary key, created_at timestamptz, deleted_at timestamptz);',
+  ].join('\n')
+  const results = runChecks(snapshot({ files: [{ path: 'db/x.sql', content: sql }] }))
+  const db = results.find((r) => r.pillar === 'Database')
+  // The core conventions are present, so the check passes — but it must state the absence of tenant
+  // isolation plainly, never imply it exists.
+  assert.equal(db?.passed, true, 'core conventions present → the check passes')
+  assert.match(db?.detail ?? '', /single-owner/, 'detail names it as single-owner')
+  assert.doesNotMatch(
+    db?.detail ?? '',
+    /including tenant isolation/,
+    'never claims isolation on a comment-only mention',
+  )
+})
+
+test('runChecks: a real tenant_id column DOES count as tenant isolation', () => {
+  // A genuine tenant_id column (not a comment) is real multi-tenant isolation and must be reported.
+  const sql =
+    'create table items (id uuid primary key, tenant_id uuid not null, created_at timestamptz, deleted_at timestamptz);'
+  const results = runChecks(snapshot({ files: [{ path: 'db/x.sql', content: sql }] }))
+  const db = results.find((r) => r.pillar === 'Database')
+  assert.equal(db?.passed, true)
+  assert.match(db?.detail ?? '', /including tenant isolation/, 'real column → isolation reported')
+})
+
+test('formatReport: a single-owner schema is not presented as having isolation', () => {
+  // End-to-end through the report text: a single-owner schema must never render a line that a reader
+  // could take as "this project has tenant isolation".
+  const sql = [
+    '-- no tenant_id here on purpose',
+    'create table items (id uuid primary key, created_at timestamptz, deleted_at timestamptz);',
+  ].join('\n')
+  const results = runChecks(
+    snapshot({ paths: ['db/x.sql'], files: [{ path: 'db/x.sql', content: sql }] }),
+  )
+  const out = formatReport(results)
+  assert.match(out, /single-owner schema — no tenant isolation/)
+  assert.doesNotMatch(out, /including tenant isolation/)
+})
+
 test('runChecks + formatReport: a project with no database is not-applicable, not a green pass', () => {
   const results = runChecks(snapshot({ paths: ['src/app.ts'], files: [] }))
   const db = results.find((r) => r.pillar === 'Database')

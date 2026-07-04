@@ -24,6 +24,13 @@ export interface CheckResult {
    * actually verified. See docs/analyze.md.
    */
   notApplicable?: boolean
+  /**
+   * True when a check PASSES but its detail carries a caveat the reader must see (e.g. the database
+   * conventions pass, but the schema is single-owner and has no tenant isolation). A plain pass
+   * hides its detail; a caveated pass shows it, so an honest "✓ … but note X" never collapses into
+   * a bare "✓" the reader could over-read. Still a real pass — it is not a failure. See docs/analyze.md.
+   */
+  caveat?: boolean
   severity: Severity
   effort: Effort
   risk: Risk
@@ -113,21 +120,47 @@ const checkDatabaseConventions: Check = (s) => {
       detail: 'no database detected — not applicable',
     }
   }
-  const text = sqlFiles.map((f) => f.content).join('\n')
-  // The four database conventions, by their canonical column/term names: unguessable
-  // ids (uuid), tenant isolation (tenant_id), timestamps (created_at), soft delete
-  // (deleted_at). tenant_id is the international multi-tenant convention — it must
-  // match what the templates' migrations actually ship.
-  const conventions = ['uuid', 'tenant_id', 'created_at', 'deleted_at']
-  const missing = conventions.filter((c) => !text.includes(c))
+  // Strip SQL comments before matching so a convention word only counts when it is real schema,
+  // not prose. Without this, the single-owner variant — whose comments MENTION tenant_id to explain
+  // its deliberate absence — would score a green tenant-isolation pass on a schema that has none: a
+  // seal that lies. Remove line comments (`-- ...` to end of line) and block comments (`/* ... */`).
+  const stripSqlComments = (sql: string): string =>
+    sql.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/--[^\n]*/g, ' ')
+  const text = sqlFiles.map((f) => stripSqlComments(f.content)).join('\n')
+
+  // Tenant isolation (tenant_id) is treated apart from the other three. Multi-tenancy is a valid
+  // product CHOICE, not a universal requirement — a single-owner schema deliberately has no
+  // tenant_id. So its absence must NOT read as a failure (that would punish a legitimate choice),
+  // and its comment-only mention must NOT read as present (that would claim isolation a single-owner
+  // schema does not have). The other three are true universal conventions: unguessable ids (uuid),
+  // timestamps (created_at), soft delete (deleted_at) — any of these missing is a real gap.
+  const coreConventions = ['uuid', 'created_at', 'deleted_at']
+  const missingCore = coreConventions.filter((c) => !text.includes(c))
+  const hasTenantIsolation = text.includes('tenant_id')
+
+  // The check passes on the core three alone; tenant isolation never fails it. When the core passes
+  // but there is no tenant_id, we say so in plain words ("single-owner schema — no tenant isolation")
+  // so a reader NEVER concludes isolation exists here, and NEVER concludes the project is wrong for
+  // being single-owner. When tenant_id IS present, the schema is multi-tenant and we say all present.
+  const passed = missingCore.length === 0
+  // A single-owner pass (core present, no real tenant_id) is a genuine pass WITH a caveat: the
+  // reader must be told there is no tenant isolation, so the report surfaces this detail instead of
+  // hiding it behind a bare ✓. A multi-tenant pass and any failure need no such flag.
+  const singleOwnerPass = passed && !hasTenantIsolation
+  const detail = missingCore.length
+    ? `missing: ${missingCore.join(', ')}`
+    : hasTenantIsolation
+      ? 'all present, including tenant isolation'
+      : 'core conventions present; single-owner schema — no tenant isolation'
   return {
     pillar: 'Database',
-    title: 'Database follows the four conventions',
-    passed: missing.length === 0,
+    title: 'Database follows the core conventions',
+    passed,
+    caveat: singleOwnerPass,
     severity: 'high',
     effort: 'medium',
     risk: 'medium',
-    detail: missing.length ? `missing: ${missing.join(', ')}` : 'all present',
+    detail,
   }
 }
 
