@@ -3,6 +3,8 @@ node_modules/
 dist/
 .next/
 coverage/
+test-results/
+playwright-report/
 
 # Lockfile is machine-generated in the package manager's own format, not Prettier's.
 pnpm-lock.yaml
