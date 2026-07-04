@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 
+import { EmptyState } from './ui/EmptyState'
 import { ErrorState } from './ui/ErrorState'
 import { LoadingSkeleton } from './ui/LoadingSkeleton'
 
@@ -22,6 +23,9 @@ export function ItemsPanel() {
 
   if (isPending) return <LoadingSkeleton variant="list" count={2} />
   if (isError) return <ErrorState onRetry={() => void refetch()} />
+  // Empty is one of the four states a screen must handle: a successful fetch that returns nothing
+  // shows an intentional message, never a blank list (see .claude/rules/experience-quality.md).
+  if (items.length === 0) return <EmptyState />
 
   return (
     <ul className="space-y-2" aria-label="Items">
@@ -30,7 +34,7 @@ export function ItemsPanel() {
           key={item.id}
           className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface p-3"
         >
-          <span className="text-text-primary text-sm">{item.name}</span>
+          <span className="text-sm text-text-1">{item.name}</span>
           <button
             type="button"
             onClick={() => {
@@ -41,7 +45,7 @@ export function ItemsPanel() {
               )
             }}
             disabled={editingId === item.id}
-            className="text-text-secondary hover:text-text-primary text-xs underline disabled:opacity-50"
+            className="text-xs text-text-2 underline hover:text-text-1 disabled:opacity-50"
           >
             {editingId === item.id ? 'Saving...' : 'Rename'}
           </button>

@@ -13,17 +13,17 @@ export function ErrorState({
 }: ErrorStateProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-16 text-center" role="alert">
-      <div className="bg-error/10 rounded-full p-4">
-        <AlertCircle className="text-error h-8 w-8" aria-hidden="true" />
+      <div className="rounded-full bg-err-bg p-4">
+        <AlertCircle className="h-8 w-8 text-err" aria-hidden="true" />
       </div>
       <div className="space-y-1">
-        <p className="text-text-primary text-sm font-medium">{message}</p>
-        <p className="text-text-secondary text-xs">Check your connection and try again.</p>
+        <p className="text-sm font-medium text-text-1">{message}</p>
+        <p className="text-xs text-text-2">Check your connection and try again.</p>
       </div>
       {onRetry && (
         <button
           onClick={onRetry}
-          className="text-text-primary inline-flex items-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium transition-colors duration-[180ms] hover:border-border-hi"
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-text-1 transition-colors duration-[180ms] hover:border-border-hi"
           aria-label="Try again"
         >
           <RefreshCcw className="h-4 w-4" aria-hidden="true" />
