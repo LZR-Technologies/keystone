@@ -1,4 +1,4 @@
-# Keystone — Two Layers, Eight Pillars
+# Keystone — Three Layers, Eight Pillars
 
 > **What this document is:** the blueprint that defines what every project scaffolded by Keystone is
 > meant to ship with. An open, unbranded standard any team can adopt as a common foundation.
@@ -14,16 +14,19 @@
 > matching over `.sql` files), and oversized files. **Layer B — the agent harness — is built and ships
 > in every scaffolded project (see below).** The **two-environment deploy pipeline** (staging from
 > `develop`, production from `main`) also ships in both templates today — see the Ship it pillar
-> below and [ship-it.md](ship-it.md) for the exact status. Everything else in this document — every
+> below and [ship-it.md](ship-it.md) for the exact status. **Layer C — experience quality — ships in
+> the web template** (structural-accessibility and colour-contrast gates, a usability checklist, and
+> UI reviewers; see the DNA section below). Everything else in this document — every
 > other pillar behavior, the automatic before-going-live gate, and the edge protection — is the
 > target, not yet delivered. Where a capability is planned, this document says so; it is never
 > described as running today.
 
 ---
 
-## The DNA — two complementary layers
+## The DNA — three complementary layers
 
-Keystone is **two complementary layers** — one for _what_ gets built, one for _who_ builds it.
+Keystone is **three complementary layers** — one for _what_ gets built, one for _who_ builds it, and
+one for _how good it is to use_.
 
 **Layer A — Product Foundation (deterministic, zero-cost).** The design goal is that none of the
 quality pillars depend on AI inference: the deterministic parts should work for free — checks,
@@ -38,10 +41,19 @@ entirely on the developer's own AI, with no external paid service required. **La
 every scaffolded project ships with it** (see the seven parts below), distilled from real, production
 working practice rather than invented on a whiteboard.
 
-The two layers keep AI in its place: Layer A's quality guarantees are deterministic and run at zero
+**Layer C — Experience Quality (built).** A usable, accessible, consistent interface is part of a
+finished project — enforced **neutrally**, never a specific look. Layer C ships today in the web
+template: hard gates where a machine can decide (structural accessibility in the linter, colour
+contrast measured in a real browser, an explicit mobile viewport), a mandatory checklist that makes
+the project answer the usability questions, and isolated-context reviewers that recommend where the
+call is judgment (hierarchy, the four states, keyboard access, visual consistency). The visual system
+stays bring-your-own: Keystone guards the quality, a design skill creates the look.
+
+The three layers keep AI in its place: Layer A's quality guarantees are deterministic and run at zero
 AI cost, so AI is never the basis of the quality guarantee; Layer B gives the coding agent a
-first-class harness that runs on the developer's own AI. In short, the AI harness applies to
-_building_ the code, not to _guaranteeing_ its quality.
+first-class harness that runs on the developer's own AI; and Layer C holds experience quality to the
+same standard without imposing a house taste. In short, the AI harness applies to _building_ the
+code, not to _guaranteeing_ its quality.
 
 ---
 

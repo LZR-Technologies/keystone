@@ -11,9 +11,9 @@
 
 ---
 
-## The two layers
+## The three layers
 
-Keystone is built as **two complementary layers**:
+Keystone is built as **three complementary layers**:
 
 - **Layer A — Product Foundation.** Deterministic, zero AI cost: the eight quality pillars a
   scaffolded project ships with, plus the checks that hold them. This is where the three
@@ -21,15 +21,17 @@ Keystone is built as **two complementary layers**:
 - **Layer B — Agent Harness.** Built: `new` lays it into every project (reviewers, guardrail hooks,
   the spec workflow, layered context — distilled from real working practice). It runs on the
   developer's own AI assistant — never a separate paid service.
+- **Layer C — Experience Quality.** Built: the web template ships accessibility and colour-contrast
+  gates, a usability checklist, and UI reviewers — enforced neutrally, never a house look.
 
-See [pillars.md](pillars.md) for the blueprint that ties both layers together.
+See [pillars.md](pillars.md) for the blueprint that ties the layers together.
 
 ## Start here
 
 - **[overview.md](overview.md)** — the core rationale: who it serves, what it promises, how far it
   reaches, and why the AI is always the developer's own.
-- **[pillars.md](pillars.md)** — the blueprint: the two layers and the eight quality pillars, end to
-  end.
+- **[pillars.md](pillars.md)** — the blueprint: the three layers and the eight quality pillars, end
+  to end.
 
 ## The commands
 
