@@ -65,30 +65,25 @@ Most of Layer A's pillars are built; the rest are the target, flagged per pillar
 
 ## Quick start
 
-Not yet published to a registry. Until it ships, run Keystone from the repo:
+```bash
+npm i -g lzr-keystone
+keystone new my-app       # scaffold a project
+keystone check .          # text guards + the project's own gates (block on failure)
+keystone analyze .        # measure an existing project (read-only)
+```
+
+The public package name is **`lzr-keystone`** (`keystone` alone is taken; the `lzr-` prefix names the
+product line); the command you type stays `keystone`.
+
+**From source** — to run the latest or to contribute:
 
 ```bash
 git clone <this-repo-url>
 cd keystone
 npm install
-node src/index.ts new my-app     # scaffold a project
-node src/index.ts check .         # text guards + the project's own gates (block on failure)
-node src/index.ts analyze .       # measure an existing project (read-only)
+node src/index.ts new my-app     # runs the TypeScript sources directly (needs Node 24)
+node src/index.ts check .
 ```
-
-Closer to the real install experience, from a local tarball:
-
-```bash
-npm run build                     # compile src/ → dist/ (what the package ships)
-npm pack                          # produces a .tgz in the repo root
-npm i -g ./lzr-keystone-*.tgz
-keystone new my-app
-```
-
-Once published, installation becomes `npm i -g lzr-keystone`, and the commands stay
-`keystone new my-app`, `keystone check .`, `keystone analyze .`. The public package name is
-**`lzr-keystone`** (`keystone` alone is taken; the `lzr-` prefix names the product line); the command
-you type stays `keystone`.
 
 ## Requirements
 
