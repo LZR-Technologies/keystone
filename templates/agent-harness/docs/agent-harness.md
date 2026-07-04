@@ -41,6 +41,9 @@ The spec is the source of truth; code derives from it.
 - Before that approval, the spec goes through a **clarification pass** (rule:
   `.claude/rules/clarify-before-building.md`): ambiguities, conflicts with the constitution,
   undefined rules, edge cases, and untestable requirements are surfaced and asked -- not guessed.
+- Once approved, the spec becomes a **plan and small tasks** (rule:
+  `.claude/rules/plan-and-tasks.md`): each task traceable to a line of the done-target, so the
+  work stays reviewable and nothing lands untracked.
 - On completion, the delivered work is checked against that target point by point, and any
   gap is reported explicitly rather than glossed over.
 - When code and spec diverge, the spec wins.

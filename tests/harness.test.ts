@@ -159,6 +159,23 @@ test('spec OS: every generated project ships the clarify-before-building rule wi
   }
 })
 
+test('spec OS: every generated project ships the plan-and-tasks rule with real content', async () => {
+  // An approved spec becomes a plan, then small tasks each traceable to the done-target. The
+  // rule must ship with that real guidance, not a stub, in every project.
+  for (const type of ['service', 'site'] as const) {
+    const parent = await mkdtemp(join(tmpdir(), 'keystone-'))
+    try {
+      const { projectDir } = await createProject(answers(type, parent))
+      const rule = await readFile(join(projectDir, '.claude/rules/plan-and-tasks.md'), 'utf8')
+      for (const marker of ['Plan first', 'small tasks', 'Trace each task', 'done-target']) {
+        assert.ok(rule.includes(marker), `${type}: plan-and-tasks rule covers "${marker}"`)
+      }
+    } finally {
+      await rm(parent, { recursive: true, force: true })
+    }
+  }
+})
+
 // Run a guardrail hook exactly as Claude Code would: JSON tool call on stdin, read the
 // exit code (2 = blocked, 0 = allowed).
 const SECRET_HOOK = resolve(
