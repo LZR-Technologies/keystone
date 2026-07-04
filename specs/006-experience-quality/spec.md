@@ -36,11 +36,15 @@ leaves is **empty (bring-your-own)**, not filled.
    `.claude/agents/`, in the same shape as the existing spec/code/security reviewers:
    `experience-reviewer.md`, `accessibility-reviewer.md`, `ui-consistency-reviewer.md`, each with a
    real mandate (not a stub). They judge and recommend; they do not block on their own.
-2. **Deterministic checks (the measurable ones only).** A small set of checks that block, wired into
-   the project's own gate: color contrast (WCAG AA ratio), touch-target size, presence of the four
-   states (loading / error / empty / success), a mobile viewport declaration, and image alternative
-   text. Each is calculable or greppable — no judgment. Skipped honestly where a project type has no
-   interface (a service with no UI).
+2. **Deterministic checks (only the ones a script can genuinely decide).** Checks that block, wired
+   into the project's gate and CI: structural accessibility at lint time (jsx-a11y — missing alt
+   text, invalid ARIA, a label with no control, a click with no keyboard path), color contrast
+   measured in a real browser (axe in the E2E suite, run by the project's CI), and a mobile viewport
+   declaration (asserted in the rendered DOM). Skipped honestly where a project type has no interface
+   (a service with no UI). **Rebased honestly from the first draft:** "the four states present" and
+   "touch-target size in every case" are NOT reliably decidable by a static check — the first needs
+   per-screen logic, the second computed layout — so faking them as hard gates would be the false
+   confidence this product refuses. They stay in the checklist (piece 3) and the reviewers (piece 1).
 3. **The mandatory checklist.** Every generated project ships a harness rule
    `.claude/rules/experience-quality.md` that makes the project answer, before it calls itself done:
    is there visual hierarchy? does it work on a phone? are there empty states? are errors
