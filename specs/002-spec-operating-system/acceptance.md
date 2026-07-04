@@ -29,13 +29,21 @@
 | M3.2 | The spec workflow references plan->tasks after approval                            | Read `docs/agent-harness.md` (part B2)               | B2 does not mention plan->tasks after approval -> reviewer confirms it points to the plan-and-tasks rule                       |
 | M3.3 | A test proves the rule ships, non-placeholder, both templates                      | Run the harness test; read it                        | A presence-only or `assert.ok(true)` test -> reviewer confirms it asserts real guidance for BOTH service and site              |
 
+## Milestone 4 -- Verify against the done-target
+
+| #    | Promise                                                                                          | How the adversary verifies (objective)               | Hollow-shell trap -> how it is caught                                                                                       |
+| ---- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| M4.1 | Every generated project ships `.claude/rules/verify-against-done-target.md` with real discipline | Scaffold a service AND a site; open the rule in each | A stub -> reviewer confirms walking the done-target point by point, running the gates, and naming every gap are all present |
+| M4.2 | The spec workflow references the verify step on completion                                       | Read `docs/agent-harness.md` (part B2)               | B2's completion bullet does not point to the verify rule -> reviewer confirms it does                                       |
+| M4.3 | A test proves the rule ships, non-placeholder, both templates                                    | Run the harness test; read it                        | A presence-only or `assert.ok(true)` test -> reviewer confirms it asserts real content for BOTH service and site            |
+
 ## Global checks
 
-| #   | Promise                                      | How the adversary verifies                                                                                                                                                                      |
-| --- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| G1  | Nothing broke: zero errors AND zero warnings | `npm run check` + `npm run build`; require 0/0 across the repo                                                                                                                                  |
-| G2  | Honest scope                                 | M4 (verify) is NOT claimed as delivered. M1 (constitution), M2 (clarify), and M3 (plan->tasks) ARE. Check `git log` and the working tree. If a later milestone is claimed but absent -> REFUTED |
-| G3  | Honest tiers                                 | The spec/docs do NOT claim a hard machine-check that a spec "conforms" to the constitution (that is a rule). If a faked hard check is claimed -> REFUTED                                        |
+| #   | Promise                                      | How the adversary verifies                                                                                                                                                                                                                                                                 |
+| --- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| G1  | Nothing broke: zero errors AND zero warnings | `npm run check` + `npm run build`; require 0/0 across the repo                                                                                                                                                                                                                             |
+| G2  | Honest scope                                 | Phase 2 is complete: M1 (constitution), M2 (clarify), M3 (plan->tasks), M4 (verify) all delivered. Nothing beyond Phase 2 (no CLI command, no convergence, no multi-agent adapter) is claimed. Check `git log` and the working tree. If a later milestone is claimed but absent -> REFUTED |
+| G3  | Honest tiers                                 | The spec/docs do NOT claim a hard machine-check that a spec "conforms" to the constitution (that is a rule). If a faked hard check is claimed -> REFUTED                                                                                                                                   |
 
 ## Verdict
 

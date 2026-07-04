@@ -44,8 +44,9 @@ The spec is the source of truth; code derives from it.
 - Once approved, the spec becomes a **plan and small tasks** (rule:
   `.claude/rules/plan-and-tasks.md`): each task traceable to a line of the done-target, so the
   work stays reviewable and nothing lands untracked.
-- On completion, the delivered work is checked against that target point by point, and any
-  gap is reported explicitly rather than glossed over.
+- On completion, the delivered work is checked against that target point by point (rule:
+  `.claude/rules/verify-against-done-target.md`), and any gap is reported explicitly rather than
+  glossed over -- a thing that exists but does not meet the target is not done.
 - When code and spec diverge, the spec wins.
 - Above every individual spec sits the **constitution** (`specs/constitution.md`): the project's
   non-negotiables. When a spec and the constitution disagree, the constitution wins and the spec
