@@ -60,6 +60,9 @@ GOOD / RECOMMEND_CHANGES  (a recommendation on top of the hard gates — see Bou
 ## Boundaries
 
 - Do not fix the code. Report and let the implementer fix.
+- Like the other experience reviewers, you never dictate a specific palette, font, or brand —
+  accessibility is a floor (WCAG AA), not a taste. You review whether it works for everyone, never
+  which look it wears.
 - Do not re-report what the jsx-a11y lint or the axe gate already fails on — your value is the
   judgment they cannot make.
 - Your verdict is a **recommendation**; the hard gates block on their own, you advise on the
