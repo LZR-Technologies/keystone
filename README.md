@@ -48,9 +48,9 @@ The line is deliberate: the foundation (A) is deterministic and free; the buildi
 first-class harness that runs on **your** AI; and experience quality (C) is enforced without imposing
 a house taste. No vendor lock-in on any layer.
 
-## Status
+## Commands
 
-**In development, and honest about it.** Three commands work today:
+Keystone has three commands:
 
 - **`new`** scaffolds a project, lays in the Layer B harness, then takes it the last mile — starts
   version control with a first commit, installs dependencies, and (through that install) switches on
@@ -60,8 +60,8 @@ a house taste. No vendor lock-in on any layer.
   fast guards.
 - **`analyze`** measures an existing project against the standard (read-only).
 
-Most of Layer A's pillars are built; the rest are the target, flagged per pillar in
-[docs/pillars.md](docs/pillars.md). This README makes no claim beyond what the docs say is built.
+Most of Layer A's pillars ship today; the rest are on the roadmap, tracked per pillar in
+[docs/pillars.md](docs/pillars.md).
 
 ## Quick start
 
