@@ -21,7 +21,8 @@
     "!templates/*/dist",
     "!templates/*/coverage",
     "!templates/*/test-results",
-    "!templates/*/playwright-report"
+    "!templates/*/playwright-report",
+    "!templates/**/*.tsbuildinfo"
   ],
   "publishConfig": {
     "access": "public"
