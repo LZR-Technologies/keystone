@@ -85,6 +85,19 @@ describe('ItemsPanel', () => {
     expect(refetch).toHaveBeenCalledTimes(1)
   })
 
+  it('renders the empty state when the query resolves with no items', () => {
+    // Covers the empty-list branch (items.length === 0) in ItemsPanel -- the
+    // one render path not otherwise exercised by this suite's pending/error/
+    // loaded-list cases.
+    vi.mocked(useItemsModule.useItems).mockReturnValue(
+      fakeQueryResult({ isPending: false, isError: false, data: [] }),
+    )
+
+    render(<ItemsPanel />)
+
+    expect(screen.getByText('Nothing here yet.')).toBeTruthy()
+  })
+
   it('renders the item list once loaded', () => {
     vi.mocked(useItemsModule.useItems).mockReturnValue(
       fakeQueryResult({ isPending: false, isError: false, data: sampleItems }),
