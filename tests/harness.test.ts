@@ -273,6 +273,29 @@ test('spec OS: every generated project ships discovery — the rule and the adap
   }
 })
 
+test('experience quality (Layer C): every generated project ships the checklist rule with real content', async () => {
+  // Layer C — a usable interface is part of "done". The mandatory experience checklist ships in every
+  // project (a UI-less service still carries it and declares its own honest skip) and must hold its
+  // real questions, not a stub.
+  for (const type of ['service', 'site'] as const) {
+    const parent = await mkdtemp(join(tmpdir(), 'keystone-'))
+    try {
+      const { projectDir } = await createProject(answers(type, parent))
+      const rule = await readFile(join(projectDir, '.claude/rules/experience-quality.md'), 'utf8')
+      for (const question of [
+        'Visual hierarchy',
+        'The four states',
+        'Touch targets',
+        'Coherence with the spec',
+      ]) {
+        assert.ok(rule.includes(question), `${type}: experience checklist has "${question}"`)
+      }
+    } finally {
+      await rm(parent, { recursive: true, force: true })
+    }
+  }
+})
+
 // Run a guardrail hook exactly as Claude Code would: JSON tool call on stdin, read the
 // exit code (2 = blocked, 0 = allowed).
 const SECRET_HOOK = resolve(
