@@ -27,6 +27,10 @@ scale, not a ceremony for every change.
      (design, edge cases, tests, security, performance, restraint).
    - For a security-sensitive task, add the **security auditor**
      (`.claude/agents/security-auditor.md`).
+   - For a UI task, add the **experience reviewers** (`.claude/agents/experience-reviewer.md`,
+     `accessibility-reviewer.md`, `ui-consistency-reviewer.md`): they judge what the hard experience
+     gates (contrast, structural a11y, viewport) cannot — visual hierarchy, the four states,
+     keyboard/screen-reader access, and visual consistency. They recommend; they do not block alone.
 3. **A critical issue blocks.** If a reviewer raises a critical issue, the task is not done -- it
    goes back to a fresh implementer with the finding, not waved through. The review is enforced by
    sending the work back, not by the main thread's goodwill.

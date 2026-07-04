@@ -296,6 +296,33 @@ test('experience quality (Layer C): every generated project ships the checklist 
   }
 })
 
+test('experience quality (Layer C): every generated project ships the three experience reviewers', async () => {
+  // The C3 reviewers judge what the hard gates cannot. Each must ship with a real mandate (not a
+  // stub) and declare it recommends rather than blocks, in every project — they cost nothing until
+  // invoked.
+  const reviewers: Record<string, string> = {
+    'experience-reviewer.md': 'Visual hierarchy',
+    'accessibility-reviewer.md': 'Keyboard, fully',
+    'ui-consistency-reviewer.md': 'never hardcoded, never invented',
+  }
+  for (const type of ['service', 'site'] as const) {
+    const parent = await mkdtemp(join(tmpdir(), 'keystone-'))
+    try {
+      const { projectDir } = await createProject(answers(type, parent))
+      for (const [file, marker] of Object.entries(reviewers)) {
+        const agent = await readFile(join(projectDir, '.claude/agents', file), 'utf8')
+        assert.ok(agent.includes(marker), `${type}: ${file} ships with real content ("${marker}")`)
+        assert.ok(
+          agent.includes('does not block on its own'),
+          `${type}: ${file} declares it recommends, not blocks`,
+        )
+      }
+    } finally {
+      await rm(parent, { recursive: true, force: true })
+    }
+  }
+})
+
 // Run a guardrail hook exactly as Claude Code would: JSON tool call on stdin, read the
 // exit code (2 = blocked, 0 = allowed).
 const SECRET_HOOK = resolve(

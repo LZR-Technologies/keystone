@@ -15,7 +15,7 @@ specific taste. It checks that a visual system **exists** and is **consistent**;
 marked "replace with your own") wired through `tailwind.config.ts`, so components inherit the
 project's look the moment its tokens replace the placeholders.
 
-## What ships today (phase C1)
+## What ships today
 
 - **The mandatory checklist** -- `.claude/rules/experience-quality.md`: before a screen is done it
   answers visual hierarchy, phone, the four states, understandable errors, contrast, touch targets,
@@ -25,12 +25,15 @@ project's look the moment its tokens replace the placeholders.
   success -- each intentional, none left as a blank area, all drawing from the design tokens. The
   worked example (`ItemsPanel`) uses them, so the reference practices the rule.
 
-## Coming (phases C2, C3)
-
-- **C2 -- deterministic checks** wired into the gate: contrast ratio, touch-target size, the four
-  states present, a mobile viewport, and image alt text -- each measurable, each blocking.
-- **C3 -- the reviewers** under `.claude/agents/`: experience, accessibility, and ui-consistency --
-  they judge and recommend, in the same shape as the Layer B reviewers.
+- **The deterministic gates** (phase C2): structural accessibility at lint time (jsx-a11y), color
+  contrast measured in a real browser (axe in the E2E suite, run by the project's CI), and an
+  explicit mobile viewport. Each one a script can genuinely decide, each blocking. Touch-target size
+  and "the four states present" were NOT faked as gates -- they are not reliably decidable
+  statically, so they live in the checklist above and the reviewers below.
+- **The reviewers** (phase C3) under `.claude/agents/`: `experience-reviewer`,
+  `accessibility-reviewer`, and `ui-consistency-reviewer` -- they judge what the hard gates cannot
+  (hierarchy, the four states, keyboard/screen-reader access, visual consistency), in the same shape
+  as the Layer B reviewers. They recommend; they do not block on their own.
 
 ## Enforcement tiers (declared honestly)
 
