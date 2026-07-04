@@ -133,6 +133,32 @@ test('spec OS: every generated project ships the project constitution with real 
   }
 })
 
+test('spec OS: every generated project ships the clarify-before-building rule with real content', async () => {
+  // Before code, the agent surfaces ambiguity/conflict/undefined-rule/edge-case/untestable and
+  // asks. The rule must ship with its five real checks, not a stub, in every project.
+  for (const type of ['service', 'site'] as const) {
+    const parent = await mkdtemp(join(tmpdir(), 'keystone-'))
+    try {
+      const { projectDir } = await createProject(answers(type, parent))
+      const rule = await readFile(
+        join(projectDir, '.claude/rules/clarify-before-building.md'),
+        'utf8',
+      )
+      for (const check of [
+        'Ambiguity',
+        'Conflict',
+        'Undefined rule',
+        'Edge case',
+        'Untestable requirement',
+      ]) {
+        assert.ok(rule.includes(check), `${type}: clarify rule covers "${check}"`)
+      }
+    } finally {
+      await rm(parent, { recursive: true, force: true })
+    }
+  }
+})
+
 // Run a guardrail hook exactly as Claude Code would: JSON tool call on stdin, read the
 // exit code (2 = blocked, 0 = allowed).
 const SECRET_HOOK = resolve(

@@ -38,6 +38,9 @@ The spec is the source of truth; code derives from it.
 
 - Every feature opens with `specs/<slug>/spec.md`: the request restated **plus a verifiable
   "done" target**, approved before any code is written.
+- Before that approval, the spec goes through a **clarification pass** (rule:
+  `.claude/rules/clarify-before-building.md`): ambiguities, conflicts with the constitution,
+  undefined rules, edge cases, and untestable requirements are surfaced and asked -- not guessed.
 - On completion, the delivered work is checked against that target point by point, and any
   gap is reported explicitly rather than glossed over.
 - When code and spec diverge, the spec wins.
