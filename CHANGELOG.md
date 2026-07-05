@@ -4,6 +4,21 @@ All notable changes to Keystone are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project aims to follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] — 2026-07-05
+
+Documentation clarity pass — no behavior change.
+
+### Changed
+
+- **Quick start now shows both ways to run the tool** and steers away from the common mistake. It
+  leads with `npx @lzr-technologies/keystone new my-app` (run without installing), keeps the global
+  `npm i -g` install, and adds an explicit warning that the `npm i` box shown at the top of the npm
+  page (without `-g`) installs Keystone as a folder dependency and never creates the `keystone`
+  command — so `keystone new` won't run afterwards.
+- Spells out that the command is the full **`keystone new`**, not `new` on its own, and that `new`
+  **asks the user for the project name and the destination folder** — Keystone never picks the
+  location itself.
+
 ## [0.1.1] — 2026-07-05
 
 Documentation honesty pass — no behavior change.
@@ -56,5 +71,6 @@ The first working release. Three commands are usable end to end.
 - `analyze` shows a project with no database as **not applicable**, not a green pass.
 - The tests gate runs `test:coverage` when a project defines it, falling back to `test` otherwise.
 
+[0.1.2]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.2
 [0.1.1]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.1
 [0.1.0]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.0
