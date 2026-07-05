@@ -92,16 +92,47 @@ pillar in [docs/pillars.md](docs/pillars.md).
 
 ## Quick start
 
-Keystone is a command-line tool that _creates_ projects, so you run it **as a command** — not as a
-project dependency. There are two ways to run it.
+Keystone _creates_ projects, so you run it as a command — not as a project dependency. Pick the path
+that fits you.
 
-**Without installing anything** (simplest — nothing is left on your machine):
+### Create with your assistant — recommended
+
+Keystone is built to be used _with_ an AI coding agent, so the most natural way to start is to let the
+agent create the project for you: you answer a few questions as clickable options, and you never touch
+the terminal. Paste this into your Claude Code chat:
+
+```text
+Create a new project for me with Keystone — you drive it, I never touch the terminal, and you talk to
+me in the language I'm writing to you in:
+
+1. Ask me the setup questions a few at a time using your interactive option cards (not the
+   terminal): project type (site · system with login and data · integration service), starting
+   language, screen priority, look, and whether it handles sensitive data or money. For a system
+   or service, also ask whether it serves multiple separate clients — and if so, super-admin and
+   audit log. Then: where to host the code (GitHub · GitLab · local), visibility, the project
+   name, and the destination folder.
+2. For the folder, require a real path — reject a bare "y" or anything that isn't a path — show me
+   exactly where the project will be created, and let me confirm.
+3. Then run Keystone yourself: install it on the fly with `npx @lzr-technologies/keystone` and
+   create the project with my answers, feeding the wizard so I never type a command. Show a short
+   "installing…" note while it works, and tell me the final path when it's done.
+
+Start with the first question.
+```
+
+The agent asks the setup questions as option cards, then installs Keystone and creates the project on
+its own. (It works with an assistant that has a terminal, like Claude Code; the assistant may still
+show you the commands it runs.)
+
+### Create in the terminal
+
+Prefer to do it yourself? Run it without installing anything:
 
 ```bash
 npx @lzr-technologies/keystone new my-app
 ```
 
-**Or install it once, globally**, then call `keystone` from any folder:
+Or install it once, globally, then call `keystone` from any folder:
 
 ```bash
 npm i -g @lzr-technologies/keystone
