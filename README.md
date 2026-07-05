@@ -92,12 +92,32 @@ pillar in [docs/pillars.md](docs/pillars.md).
 
 ## Quick start
 
+Keystone is a command-line tool that _creates_ projects, so you run it **as a command** — not as a
+project dependency. There are two ways to run it.
+
+**Without installing anything** (simplest — nothing is left on your machine):
+
+```bash
+npx @lzr-technologies/keystone new my-app
+```
+
+**Or install it once, globally**, then call `keystone` from any folder:
+
 ```bash
 npm i -g @lzr-technologies/keystone
-keystone new my-app       # scaffold a project
+keystone new my-app       # create a project — it asks you the name and where to put it
 keystone check .          # text guards + the project's own gates (block on failure)
 keystone analyze .        # measure an existing project (read-only)
 ```
+
+> **Heads up — don't copy the box at the top of the npm page.** That `npm i @lzr-technologies/keystone`
+> (without `-g`) adds Keystone as a _dependency of the current folder_, which is **not** what you want:
+> it installs the tool but never creates the `keystone` command, so `keystone new` won't run afterwards.
+> Keystone _builds_ projects; it is not a library you add to one. Use `npx` or the global install above,
+> and type the whole command **`keystone new`** — `new` on its own is not a command.
+
+When you run `new`, Keystone **asks you the project name and the folder to create it in** — you choose
+both. It never picks the location for you, so the project lands wherever _your_ machine keeps its work.
 
 The package ships under the **`@lzr-technologies`** organization as **`@lzr-technologies/keystone`**
 (`keystone` alone is taken; publishing under the org scope keeps the whole product line clearly LZR's);
