@@ -3,6 +3,7 @@
 // The content of the questions is the same whether asked as text or as cards.
 // See docs/setup-wizard.md.
 
+import { homedir } from 'node:os'
 import type { Prompter } from './prompter.ts'
 import { assertValidProjectName, normalizeProjectName, TEMPLATE_EXISTS_FOR } from './create.ts'
 import type { KeystoneAnswers, ProjectType, ScreenPriority, VersionTarget } from './types.ts'
@@ -113,8 +114,17 @@ export async function runWizard(prompter: Prompter, presetName?: string): Promis
     { value: true, label: 'Private' },
   ])
 
+  // Show concrete, predictable suggestions right in the prompt — the current folder and the user's
+  // home — so there is a real path to copy or adapt instead of guessing (a bare "y" once became a
+  // folder named "y"). Deterministic and cross-platform: no "Documents", which does not exist the
+  // same way on every OS. The richer clickable/confirm experience is the assistant flow's job (the
+  // paste-to-Claude block); here in the plain terminal, showing real paths is the honest minimum.
+  // The chosen path is validated at creation time (the empty-destination check in create.ts).
+  const cwd = process.cwd()
+  const home = homedir()
+  const suggestion = home !== cwd ? `e.g. "${cwd}" (here) or "${home}"` : `e.g. "${cwd}"`
   const parentDir = await prompter.text(
-    'Parent folder (Keystone creates the project folder inside it)?',
+    `Parent folder — the project folder is created inside it (${suggestion}):`,
   )
 
   return {

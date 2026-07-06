@@ -102,6 +102,31 @@ test('runPostCreate: --no-install skips install but still versions', async () =>
   }
 })
 
+test('runPostCreate: reports each step start and finish to a progress reporter, in order', async () => {
+  const dir = await tempProject('pnpm-lock.yaml')
+  const runner = new RecordingRunner()
+  const events: string[] = []
+  const reporter = {
+    start: (label: string): void => {
+      events.push(`start:${label}`)
+    },
+    done: (ok: boolean): void => {
+      events.push(`done:${ok}`)
+    },
+  }
+  try {
+    await runPostCreate(dir, { initGit: true, installDeps: true }, runner, reporter)
+    // Five steps, each announced then finished, ending on the install — this is what drives the
+    // spinner: the caller knows the moment each step begins and ends.
+    assert.equal(events.filter((e) => e.startsWith('start:')).length, 5)
+    assert.equal(events[0], 'start:initialize version control (main)')
+    assert.equal(events.at(-2), 'start:install dependencies (pnpm)')
+    assert.equal(events.at(-1), 'done:true')
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
 test('runPostCreate: a failed git init skips add and commit (same root cause)', async () => {
   const dir = await tempProject('pnpm-lock.yaml')
   // Make git fail: git init reports non-zero, so add/commit must not run.

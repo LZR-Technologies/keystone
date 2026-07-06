@@ -4,6 +4,23 @@ All notable changes to Keystone are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project aims to follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.7] — 2026-07-06
+
+### Added
+
+- **A sign of life during install.** The slow dependency-install step now shows a spinner in a
+  terminal, turning into a check when it finishes — a fresh project's install used to sit silent and
+  look frozen. Off a TTY (piped or scripted) it stays quiet, printing one line per step as before.
+- **Folder suggestions in the wizard.** The parent-folder question shows concrete, predictable paths
+  (the current folder and your home) right in the prompt, so there's a real path to copy or adapt
+  instead of guessing — deterministic and cross-platform (no OS-specific "Documents").
+
+### Changed
+
+- **`--no-install` is discoverable.** Its help entry now says plainly that it skips the slow install
+  for a fast scaffold (the project is still created and versioned), and the README's terminal section
+  points to it for anyone in a hurry.
+
 ## [0.1.6] — 2026-07-06
 
 ### Added
@@ -134,6 +151,7 @@ The first working release. Three commands are usable end to end.
 - `analyze` shows a project with no database as **not applicable**, not a green pass.
 - The tests gate runs `test:coverage` when a project defines it, falling back to `test` otherwise.
 
+[0.1.7]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.7
 [0.1.6]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.6
 [0.1.5]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.5
 [0.1.4]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.4

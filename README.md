@@ -153,6 +153,9 @@ keystone check .          # text guards + the project's own gates (block on fail
 keystone analyze .        # measure an existing project (read-only)
 ```
 
+In a hurry? Add `--no-install` to `new` to skip the slow dependency step — the project is still
+created and versioned; you run the install yourself later.
+
 > **Heads up — don't copy the box at the top of the npm page.** That `npm i @lzr-technologies/keystone`
 > (without `-g`) adds Keystone as a _dependency of the current folder_, which is **not** what you want:
 > it installs the tool but never creates the `keystone` command, so `keystone new` won't run afterwards.

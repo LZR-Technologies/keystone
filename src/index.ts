@@ -28,6 +28,7 @@ import { checkProject } from './guards/runner.ts'
 import { analyzeProject } from './analyze/checks.ts'
 import { formatReport } from './analyze/report.ts'
 import { runPostCreate, DEFAULT_POST_CREATE } from './post-create.ts'
+import { createConsoleReporter } from './progress.ts'
 import { runProjectGates, anyGateFailed } from './gates/project-gates.ts'
 import { ShellRunner } from './exec.ts'
 import { print, printError } from './output.ts'
@@ -44,7 +45,8 @@ Usage:
 
 Options for "new":
   --no-git       Skip initializing version control and the first commit
-  --no-install   Skip installing dependencies (leaves git hooks inactive)
+  --no-install   Skip the slow dependency install for a fast scaffold. The project is still created
+                 and versioned; run the install yourself later (the git hooks activate then).
 
 Non-interactive "new" — pass every answer as a flag to skip the wizard entirely:
   --type <site|system|service|mobile>     --language <pt|en|es|other>
@@ -158,14 +160,17 @@ async function finishSetup(
   if (!options.initGit && !options.installDeps) return
 
   print('\nFinishing setup…')
-  const outcomes = await runPostCreate(projectDir, options, new ShellRunner())
+  // The reporter prints each step's spinner (in a terminal) and its finishing check as it goes, so a
+  // slow install shows a sign of life instead of sitting silent. Here we only add the failure detail
+  // (the reporter's one-line mark doesn't carry it) and set the aggregate exit code.
+  const outcomes = await runPostCreate(
+    projectDir,
+    options,
+    new ShellRunner(),
+    createConsoleReporter(),
+  )
   for (const outcome of outcomes) {
-    if (outcome.ok) {
-      print(`  ✓ ${outcome.step}`)
-    } else {
-      printError(`  ✗ ${outcome.step}`)
-      if (outcome.detail) printError(`    ${outcome.detail.split('\n')[0]}`)
-    }
+    if (!outcome.ok && outcome.detail) printError(`    ${outcome.detail.split('\n')[0]}`)
   }
   // Surface any failure in the exit code so a script calling Keystone can tell the
   // project needs a manual step, without treating the whole creation as lost.

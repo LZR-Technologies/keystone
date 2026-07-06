@@ -61,6 +61,28 @@ export interface StepOutcome {
 }
 
 /**
+ * Reports each step as it starts and finishes, so a caller can show live progress (a spinner) while
+ * a slow step — dependency install — runs. Optional: when no reporter is passed, steps run silently
+ * and only the returned outcomes tell the story (this is how the tests exercise it, with no terminal).
+ */
+export interface ProgressReporter {
+  start(label: string): void
+  done(ok: boolean): void
+}
+
+/** Run one step, reporting its start/finish if a reporter is present, and map the result to an outcome. */
+async function runStep(
+  reporter: ProgressReporter | undefined,
+  label: string,
+  run: () => Promise<CommandResult>,
+): Promise<StepOutcome> {
+  reporter?.start(label)
+  const outcome = toOutcome(label, await run())
+  reporter?.done(outcome.ok)
+  return outcome
+}
+
+/**
  * Take a freshly copied project the last mile.
  *
  * Order matters and is deliberate:
@@ -79,17 +101,24 @@ export async function runPostCreate(
   projectDir: string,
   options: PostCreateOptions,
   runner: CommandRunner,
+  reporter?: ProgressReporter,
 ): Promise<StepOutcome[]> {
   const outcomes: StepOutcome[] = []
 
   if (options.initGit) {
-    outcomes.push(...(await initGit(projectDir, runner)))
+    outcomes.push(...(await initGit(projectDir, runner, reporter)))
   }
 
   if (options.installDeps) {
+    // Install is the one slow step (it can run for a minute or more), so it is the step the
+    // progress spinner exists for — a fresh project's dependency install used to sit silent and
+    // look frozen. The manager comes from the template's lockfile.
     const manager = await detectPackageManager(projectDir)
-    const result = await runner.run(manager, ['install'], projectDir)
-    outcomes.push(toOutcome(`install dependencies (${manager})`, result))
+    outcomes.push(
+      await runStep(reporter, `install dependencies (${manager})`, () =>
+        runner.run(manager, ['install'], projectDir),
+      ),
+    )
   }
 
   return outcomes
@@ -107,32 +136,46 @@ export async function runPostCreate(
  *     integration/working levels. Without this, the developer's very next commit
  *     would be blocked by the project's own guard — a dead end.
  */
-async function initGit(projectDir: string, runner: CommandRunner): Promise<StepOutcome[]> {
+async function initGit(
+  projectDir: string,
+  runner: CommandRunner,
+  reporter?: ProgressReporter,
+): Promise<StepOutcome[]> {
   const outcomes: StepOutcome[] = []
 
-  const init = await runner.run('git', ['init', '-b', 'main'], projectDir)
-  outcomes.push(toOutcome('initialize version control (main)', init))
+  const init = await runStep(reporter, 'initialize version control (main)', () =>
+    runner.run('git', ['init', '-b', 'main'], projectDir),
+  )
+  outcomes.push(init)
   // If git itself is missing or init failed, the add/commit cannot succeed — skip them
   // rather than emit two more confusing failures for the same root cause.
   if (!init.ok) return outcomes
 
-  const add = await runner.run('git', ['add', '-A'], projectDir)
-  outcomes.push(toOutcome('stage the initial files', add))
+  const add = await runStep(reporter, 'stage the initial files', () =>
+    runner.run('git', ['add', '-A'], projectDir),
+  )
+  outcomes.push(add)
   if (!add.ok) return outcomes
 
   // Conventional-commit message WITH scope, so once the commit-msg hook is live
   // (after install) the history already matches the exact format the hook enforces.
-  const commit = await runner.run(
-    'git',
-    ['commit', '-m', 'chore(scaffold): initialize project with keystone'],
-    projectDir,
+  const commit = await runStep(reporter, 'record the first commit', () =>
+    runner.run(
+      'git',
+      ['commit', '-m', 'chore(scaffold): initialize project with keystone'],
+      projectDir,
+    ),
   )
-  outcomes.push(toOutcome('record the first commit', commit))
+  outcomes.push(commit)
   if (!commit.ok) return outcomes
 
   // Leave the developer on the integration branch, ready to work.
-  const branch = await runner.run('git', ['checkout', '-b', 'develop'], projectDir)
-  outcomes.push(toOutcome('create the develop branch (daily work happens here)', branch))
+  const branch = await runStep(
+    reporter,
+    'create the develop branch (daily work happens here)',
+    () => runner.run('git', ['checkout', '-b', 'develop'], projectDir),
+  )
+  outcomes.push(branch)
 
   return outcomes
 }
