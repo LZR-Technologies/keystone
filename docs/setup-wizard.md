@@ -173,3 +173,24 @@ Type-3 questions about infrastructure:
 - Inside an AI assistant with cards → questions become multiple-choice cards.
 - In another environment → questions as plain text.
 - Same content, two skins. AI cost only in the AI environment, and only at creation time.
+
+## Non-interactive creation (skip the wizard)
+
+An automated caller — an AI agent, or a script — can pass every answer as a flag on `new`, and
+Keystone creates the project in one shot with no wizard at all: `--type`, `--language`, `--screen`,
+`--sensitive`, then `--multi-tenant` (and, inside a multi-tenant "yes", `--super-admin` and
+`--audit-log`) for a database-backed type, and `--version-target`, `--private`, `--dir`. When the
+answer flags are present the wizard is skipped entirely; when absent, it runs as described above. A
+partial or invalid flag fails with a clear message rather than silently falling back to asking (which
+would reopen the very wizard the caller was avoiding). Run `keystone help` for the exact flag list.
+
+This is what lets the paste-to-Claude flow feel silent: the agent collects the answers as cards, then
+hands them all over at once — it never has to reverse-engineer the question order to feed input.
+
+## What creation does NOT do (said out loud at the end)
+
+After creating, Keystone prints a short "Still to do by hand" notice for the manual next steps it
+never performs: the **remote repository** is not created (version control is initialized locally, but
+the GitHub/GitLab repo is the user's to create and push to), and the **database** is not provisioned
+(the need is recorded, but nothing is created or connected). Saying this at the moment — not only
+here in the docs — keeps a screen full of green checks from implying those were done too.

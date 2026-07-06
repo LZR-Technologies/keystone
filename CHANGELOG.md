@@ -4,6 +4,27 @@ All notable changes to Keystone are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project aims to follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6] — 2026-07-06
+
+### Added
+
+- **Non-interactive creation.** `new` now accepts every answer as a flag (`--type`, `--language`,
+  `--screen`, `--sensitive`, `--multi-tenant`/`--super-admin`/`--audit-log`, `--version-target`,
+  `--private`, `--dir`), so an AI agent or a script can create a project in one shot without the
+  interactive wizard. When the flags are present the wizard is skipped; when absent, it runs as
+  before. A partial or invalid flag fails with a clear message. This removes the reverse-engineering
+  the paste-to-Claude flow needed to feed the wizard — the agent collects answers as cards and hands
+  them over at once, silently.
+- **An honest "Still to do by hand" notice at the end of creation.** Keystone now says out loud that
+  it did NOT create the remote repository (version control is local only) nor the database (the need
+  is recorded, never provisioned) — both are manual next steps. Before, this lived only in the docs.
+
+### Changed
+
+- The paste-to-Claude block in the README forces the latest version (`@latest`, avoiding a stale npx
+  cache that served an old version in a real run), runs non-interactively and silently, and relays
+  only the final path plus the notice.
+
 ## [0.1.5] — 2026-07-05
 
 ### Changed
@@ -113,6 +134,7 @@ The first working release. Three commands are usable end to end.
 - `analyze` shows a project with no database as **not applicable**, not a green pass.
 - The tests gate runs `test:coverage` when a project defines it, falling back to `test` otherwise.
 
+[0.1.6]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.6
 [0.1.5]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.5
 [0.1.4]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.4
 [0.1.3]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.3

@@ -20,8 +20,10 @@ if (nodeMajor < MINIMUM_NODE_MAJOR) {
 
 import { resolve } from 'node:path'
 import { runWizard } from './wizard.ts'
-import { createProject } from './create.ts'
+import { createProject, type DeducedChoices } from './create.ts'
+import { answersFromFlags } from './answers-from-flags.ts'
 import { ReadlinePrompter } from './prompter.ts'
+import type { KeystoneAnswers } from './types.ts'
 import { checkProject } from './guards/runner.ts'
 import { analyzeProject } from './analyze/checks.ts'
 import { formatReport } from './analyze/report.ts'
@@ -44,21 +46,51 @@ Options for "new":
   --no-git       Skip initializing version control and the first commit
   --no-install   Skip installing dependencies (leaves git hooks inactive)
 
+Non-interactive "new" — pass every answer as a flag to skip the wizard entirely:
+  --type <site|system|service|mobile>     --language <pt|en|es|other>
+  --screen <mobile|desktop|both>          --sensitive <yes|no>
+  --version-target <github|gitlab|local>  --private <yes|no>     --dir <path>
+  For a system/service, add:  --multi-tenant <yes|no>
+  When multi-tenant is yes, add:  --super-admin <yes|no>  --audit-log <yes|no>
+
 Options for "check":
   --no-gates     Run only the fast text guards; skip the project's own tooling
 `)
 }
 
-/** The name argument for "new" is the first token that is not an --option. */
+/** The first token that is not an --option (used by "check" for its directory). */
 function firstPositional(args: string[]): string | undefined {
   return args.find((arg) => !arg.startsWith('--'))
 }
 
+/**
+ * The project name for "new": the first token, and only when it is not an --option. Restricting it
+ * to position 0 (rather than "the first non-flag anywhere") is deliberate — with non-interactive
+ * flags carrying values, "the first non-flag anywhere" would mistake a flag's value (the `system`
+ * in `--type system`) for the name when the name is omitted. Here, an omitted name yields undefined,
+ * which the flag path rejects with a clear error and the wizard path fills by asking.
+ */
+function newName(args: string[]): string | undefined {
+  const first = args[0]
+  return first !== undefined && !first.startsWith('--') ? first : undefined
+}
+
 async function runNew(args: string[]): Promise<void> {
+  const name = newName(args)
+  // Non-interactive when answer flags are present (--type ...); otherwise the interactive wizard.
+  // This is what lets an AI agent create a project in one shot without reverse-engineering the
+  // wizard: it collects the answers as cards, then passes them all as flags. answersFromFlags throws
+  // a clear error if the flags are partial, so a botched call fails loudly instead of half-asking.
+  const fromFlags = answersFromFlags(args, name)
   const prompter = new ReadlinePrompter()
   try {
-    print('\nKeystone — let’s set up your project.\n')
-    const answers = await runWizard(prompter, firstPositional(args))
+    let answers: KeystoneAnswers
+    if (fromFlags) {
+      answers = fromFlags
+    } else {
+      print('\nKeystone — let’s set up your project.\n')
+      answers = await runWizard(prompter, name)
+    }
     const { projectDir, template, deduced } = await createProject(answers)
     print(`\n✓ Project created at ${projectDir}`)
     print(`  From the ${template} template`)
@@ -77,9 +109,45 @@ async function runNew(args: string[]): Promise<void> {
       installDeps: DEFAULT_POST_CREATE.installDeps && !args.includes('--no-install'),
     }
     await finishSetup(projectDir, options)
+    printManualNextSteps(answers, deduced, options.initGit)
   } finally {
     prompter.close()
   }
+}
+
+/**
+ * Say plainly what creation did NOT do, so the user is never left assuming a remote repository or a
+ * database now exists. Keystone initializes version control LOCALLY (commit + branch) but never
+ * creates the remote repo, and it records that a database is needed but never provisions one — both
+ * are manual next steps. Stating this at the moment (not only in docs) is the honest close: the
+ * screen just showed a stream of green checks, and without this the user could reasonably think the
+ * repo and database were among them.
+ */
+function printManualNextSteps(
+  answers: KeystoneAnswers,
+  deduced: DeducedChoices,
+  initGit: boolean,
+): void {
+  const notes: string[] = []
+  const target = answers.setup.versionTarget
+  // Only worth saying when a cloud remote was chosen AND version control was actually initialized —
+  // "local only" has no remote to create, and --no-git means nothing was versioned to begin with.
+  if (initGit && target !== 'local') {
+    const service = target === 'github' ? 'GitHub' : 'GitLab'
+    notes.push(
+      `Remote repository — NOT created. Version control is initialized locally (first commit + ` +
+        `develop branch), but the ${service} repository is yours to create and push to.`,
+    )
+  }
+  if (deduced.needsDatabase) {
+    notes.push(
+      `Database — NOT created. Keystone recorded that this project needs one, but never provisions ` +
+        `a database. Create and connect it yourself.`,
+    )
+  }
+  if (notes.length === 0) return
+  print('\nStill to do by hand:')
+  for (const note of notes) print(`  • ${note}`)
 }
 
 /** Run the post-create steps and report each one honestly — a failed step never fails silently. */

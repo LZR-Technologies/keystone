@@ -116,9 +116,18 @@ Create a new project for me with Keystone — you drive it, and I never touch th
    folder, offer me a couple of likely paths plus "type another", require a real path (reject a
    bare "y"), show me exactly where the project will be created, and let me confirm — never pick
    the location silently.
-4. Then run Keystone yourself: install it on the fly with `npx @lzr-technologies/keystone` and
-   create the project with my answers, feeding the wizard so I never type a command. Show a short
-   "installing…" note while it works, and tell me the final path when it's done.
+4. Then create the project yourself — silently. Do NOT narrate your steps or inspect Keystone's
+   internals. Run it NON-INTERACTIVELY, passing every answer as a flag in one command, and force
+   the latest version with @latest:
+
+   npx @lzr-technologies/keystone@latest new <name> --type <site|system|service>
+   --language <pt|en|es|other> --screen <mobile|desktop|both> --sensitive <yes|no>
+   [--multi-tenant <yes|no> --super-admin <yes|no> --audit-log <yes|no>]
+   --version-target <github|gitlab|local> --private <yes|no> --dir "<parent folder>"
+
+   Show a short "installing…" note while it runs. When it's done, tell me the final path and relay
+   Keystone's own "Still to do by hand" notice — the remote repository and the database were NOT
+   created; those are manual next steps. Say nothing else about the internals.
 
 Start by asking the language.
 ```
