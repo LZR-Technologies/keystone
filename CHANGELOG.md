@@ -4,6 +4,15 @@ All notable changes to Keystone are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project aims to follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] — 2026-07-05
+
+### Changed
+
+- **Name normalization is now announced.** When creation adjusts a project name (case or spaces —
+  e.g. "Optograph" → "optograph"), the wizard tells you the resulting name at that moment, instead
+  of leaving the change to be noticed later in the created path. A name that needed no adjustment
+  stays quiet. Closes the conscious gap from 0.1.4.
+
 ## [0.1.4] — 2026-07-05
 
 A creation-experience pass, driven by a real first-run of the paste-to-Claude path.
@@ -104,6 +113,7 @@ The first working release. Three commands are usable end to end.
 - `analyze` shows a project with no database as **not applicable**, not a green pass.
 - The tests gate runs `test:coverage` when a project defines it, falling back to `test` otherwise.
 
+[0.1.5]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.5
 [0.1.4]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.4
 [0.1.3]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.3
 [0.1.2]: https://github.com/LZR-Technologies/keystone/releases/tag/v0.1.2

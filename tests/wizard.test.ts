@@ -95,13 +95,21 @@ test('runWizard: normalizes a human name (capitals, spaces) instead of rejecting
   const prompter = new ScriptedPrompter(['1', '2', '1', '2', '3', '1', '/sites'])
   const answers = await runWizard(prompter, 'My App')
   assert.equal(answers.product.name, 'my-app')
+  // The adjustment is surfaced to the user, mentioning the resulting name.
+  assert.equal(prompter.notices.length, 1)
+  assert.ok(
+    prompter.notices.some((n) => n.includes('my-app')),
+    'the notice should mention the resulting name',
+  )
 })
 
-test('runWizard: a valid name passes the early name check', async () => {
+test('runWizard: a valid name passes the early check and emits no notice', async () => {
   // type, language, screen, sensitive, version, visibility, parentDir — all valid.
   const prompter = new ScriptedPrompter(['1', '2', '1', '2', '3', '1', '/sites'])
   const answers = await runWizard(prompter, 'my-app')
   assert.equal(answers.product.name, 'my-app')
+  // Nothing was adjusted, so the user is not bothered with a notice.
+  assert.deepEqual(prompter.notices, [])
 })
 
 test('runWizard: warns about mobile the moment it is chosen, not after the whole briefing', async () => {

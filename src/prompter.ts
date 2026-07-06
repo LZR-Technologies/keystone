@@ -14,6 +14,8 @@ export interface Choice<T> {
 export interface Prompter {
   text(question: string): Promise<string>
   choice<T>(question: string, choices: Choice<T>[]): Promise<T>
+  /** Show the user an informational message that is not a question (e.g. "the name was adjusted"). */
+  notice(message: string): void
   close(): void
 }
 
@@ -79,6 +81,10 @@ export class ReadlinePrompter implements Prompter {
     }
   }
 
+  notice(message: string): void {
+    output.write(`${message}\n`)
+  }
+
   close(): void {
     this.rl.close()
   }
@@ -88,6 +94,8 @@ export class ReadlinePrompter implements Prompter {
 export class ScriptedPrompter implements Prompter {
   private index = 0
   private readonly answers: string[]
+  /** Notices emitted during the run, in order — so tests can assert on them without a terminal. */
+  readonly notices: string[] = []
 
   constructor(answers: string[]) {
     this.answers = answers
@@ -104,6 +112,10 @@ export class ScriptedPrompter implements Prompter {
       throw new Error(`Scripted answer out of range: ${picked}`)
     }
     return chosen.value
+  }
+
+  notice(message: string): void {
+    this.notices.push(message)
   }
 
   private next(): string {

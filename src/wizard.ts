@@ -14,9 +14,16 @@ export async function runWizard(prompter: Prompter, presetName?: string): Promis
   // the remaining questions: a name that is still invalid after normalizing is a dead end, so
   // surfacing it now spares the user the whole questionnaire only to be rejected at creation time.
   // createProject re-normalizes and re-checks as the real guard; this is the early, friendly failure.
-  const name = normalizeProjectName(
-    presetName ?? (await prompter.text('What is the project called?')),
-  )
+  const rawName = presetName ?? (await prompter.text('What is the project called?'))
+  const name = normalizeProjectName(rawName)
+  // Tell the user when the name was adjusted (case or spaces), so the change is visible at the
+  // moment it happens — not discovered later in the created path. Compare against the trimmed raw
+  // so leading/trailing spaces alone (already dropped) don't trigger a noisy notice.
+  if (name !== rawName.trim()) {
+    prompter.notice(
+      `Using "${name}" — project names are lowercase, with spaces turned into hyphens.`,
+    )
+  }
   assertValidProjectName(name)
 
   const type = await prompter.choice<ProjectType>('What kind of project is it?', [
